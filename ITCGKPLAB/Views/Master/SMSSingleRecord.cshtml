@@ -1,0 +1,89 @@
+﻿@model SingleSMSViewModel
+@{
+	ViewData["Title"] = "SMSSingleRecord";
+}
+
+<div class="CustomBorder1">
+	<h4 class="text-center text-white bg-secondary">Send Message</h4>
+	<form asp-action="SMSSingleRecord" autocomplete="off">
+		<div class="row">
+			<div class="col-sm-12 text-center">
+				<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+					@if (ViewBag.isSuccess == true)
+					{
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>@ViewBag.message </strong>
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+					}
+				</div>
+			</div>
+			<div class="col-sm-12">
+				<div class="form-group row">
+					<label asp-for="CellNo" class="col-sm-2 col-form-label col-form-label-sm"></label>
+					<div class="col-sm-10">
+
+						<input asp-for="CellNo" class="form-control form-control-sm" />
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="MessageBody" class="col-sm-2 col-form-label col-form-label-sm"></label>
+					<div class="col-sm-10">
+						<textarea asp-for="MessageBody" class="form-control form-control-sm" rows="6"></textarea>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="MessageBodyHindi" class="col-sm-2 col-form-label col-form-label-sm"></label>
+					<div class="col-sm-10">
+						<textarea asp-for="MessageBodyHindi" class="form-control form-control-sm" rows="6" ></textarea>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="Language" class="col-form-label col-form-label-sm col-sm-2"></label>
+					@foreach (var item in System.Enum.GetValues(typeof(CustomerLanguage)).OfType<CustomerLanguage>())
+					{
+						<label class="radio-inline margin-rightt-ten margin-leftt-five margin-top-none col-sm-1">
+							<input type="radio" asp-for="Language" value="@((int)item)" class="margin-rightt-five" checked="@(item == Model?.Language)">  @item
+						</label>
+					}
+					<div class="col-sm-7 text-sm-right">
+						<a asp-action="SMSSingleRecord" asp-controller="Master" class="btn btn-warning" style="width:auto">Select Cell No.</a>
+						<input type="submit" value="Message" class="btn btn-success" />
+						<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info">Cancel</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+@section Scripts {
+	@*<script type="text/javascript" src="http://www.google.com/jsapi"></script>*@
+	@*<script type="text/javascript">
+			google.load("elements", "1", {
+				packages: "transliteration"
+			});
+
+			function ReadonLoad() {
+				var options = {
+					sourceLanguage: google.elements.transliteration.LanguageCode.ENGLISH,
+					destinationLanguage: google.elements.transliteration.LanguageCode.HINDI, // available option English, Bengali, Marathi, Malayalam etc.
+					shortcutKey: 'ctrl+g',
+					transliterationEnabled: true
+				};
+
+				var control = new google.elements.transliteration.TransliterationControl(options);
+				control.makeTransliteratable(['MessageBodyHindi']);
+			}
+			google.setOnLoadCallback(ReadonLoad);
+		</script>*@
+	@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+	<environment include="Development">
+		<script src="~/js/CustomSMS.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/CustomSMS.min.js" asp-append-version="true"></script>
+	</environment>
+}
+

@@ -1,0 +1,284 @@
+﻿@model OpenSearchViewModel
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{
+	ViewData["Title"] = "Due Analysis";
+	var softwareheader = softwareoption.Value;
+	decimal paidamt = 0; decimal balamt = 0;
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	var paidclass = "";
+	List<PatientViewModel> detailViewModelsx = await _mrepository.GetAllPatientMasterDueAnalysis(Model.CompId, Model.UserId, Model.MobileNo,Convert.ToInt32(Model.sex), Model.CustomerName, Model.Age, Model.Address, Model.EmailAddress, Model.DoctorId, Model.FromDate, Model.UptoDate, Model.PaymentMode);
+	}
+	<div class="CustomBorderRelative pt-1">
+		<div class="CustomBorder1">
+
+			<form asp-action="PatientDueanalysis" asp-controller="Master" method="post" autocomplete="off">
+				@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+				<div class="form-row">
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+						<div class="form-group row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								@if (!softwareheader.SoftwareMode)
+								{
+									@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.Id).Select(x=> new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Branch">
+											<option value="0">ALL</option>
+										</select>
+									}
+									else
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Branch">
+										</select>
+									}
+								}
+								else
+								{
+
+									@if (User.IsInRole("SuperAdmin"))
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.TransCode).Select(x=> new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Branch">
+											<option value="0">ALL</option>
+										</select>
+									}
+									else
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Branch">
+										</select>
+									}
+								}
+
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="UserId" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+									{
+										<select asp-for="UserId" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == Model.CompId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+											<option value="0">ALL</option>
+										</select>
+									}
+									else
+									{
+										<select asp-for="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+										</select>
+									}
+								}
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								<input asp-for="FromDate" class="form-control " title="From Date" />
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								<input asp-for="UptoDate" class="form-control " title="Upto Date" />
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+								<input asp-for="CustomerName" class="form-control  " placeholder="Patient's Name" />
+							</div>
+							<div hidden>
+								<input asp-for="PaymentType" class="form-control  " placeholder="Payment Type" />
+							</div>
+						</div>
+						<div class="form-group row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+										<input asp-for="MobileNo" class="form-control  CustomText" placeholder="Mobile No." />
+									</div>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+										<input asp-for="Address" class="form-control  CustomText" placeholder="Address" />
+									</div>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+										<input asp-for="EmailAddress" class="form-control  CustomText" placeholder="Email Address" />
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+										<select asp-for="DoctorId" asp-items=" (await _mrepository.GetAllDoctorMaster(softwareheader.SoftwareMode == true ? (int)((await userManager.GetUserAsync(User)).CompanyDetailId):1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = (x.Name + ' ' + x.Eduction), Value = x.Code.ToString() })" class="form-control  CustomText selectedItems" title="Doctor's Name">
+											<option value="0">ALL</option>
+										</select>
+									</div>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+										<select asp-for="PaymentMode" asp-items="Html.GetEnumSelectList<PayMode>()" class="form-control  CustomText selectedItems" title="Payment Type">
+											<option value="ALL">ALL</option>
+										</select>
+									</div>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+										<select asp-for="sex" asp-items="Html.GetEnumSelectList<Gender>()" class="form-control  CustomText selectedItems" title="Gender">
+											<option value="3">ALL</option>
+										</select>
+									</div>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+										<input asp-for="Age" class="form-control  CustomText" title="Search Age" />
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>					
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right CustLabel">						
+						<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />		
+						<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+					</div>
+				</div>
+				
+			</form>			
+			<div class="stateScroll" id="DoctorTable1">
+				<table class="table table-striped table-bordered table-hover table-responsive-sm Vouch">
+					<thead class="bluevioletWhiteListHeader small">
+						<tr>
+							<th hidden>
+								Id
+							</th>
+							<th class="wdp-5">
+								Date
+							</th>
+							<th class="wdp-5">
+								UID
+							</th>
+							<th class="wdp-5">
+								Ref. No.
+							</th>
+							<th class="wdp-5">
+								User
+							</th>
+							<th class="wdp-12">
+								Name
+							</th>
+							<th>
+								Doctor's Name
+							</th>
+							<th>
+								Investigation
+							</th>
+							<th class="wdp-5">
+								Payment
+							</th>
+							<th class="text-right wdp-6">
+								Total Amt.
+							</th>
+							<th class="text-right wdp-5">
+								Disc.Amt.
+							</th>
+							<th class="text-right wdp-6">
+								Paid Amt.
+							</th>
+							<th class="text-right wdp-6">
+								Bal Amt.
+							</th>
+							<th class="wdp-7 text-center">
+								Action
+							</th>
+						</tr>
+					</thead>
+					<tbody class="tbodyPatientRecord">
+						@if (detailViewModelsx.Count() > 0)
+						{
+							@foreach (var item in detailViewModelsx)
+							{								
+								balamt = balamt + Convert.ToDecimal(item.BalAmt);
+								if (await _mrepository.GetPatientDueReciptValidedByVoucherNo(item.VNo))
+								{
+									paidclass = "fullpaidColor";
+									paidamt = paidamt + Convert.ToDecimal(item.PaidAmt);
+								}
+								else
+								{
+									paidclass = "fullyunpaidColor";
+								}
+								<tr class=" @paidclass">
+									<td hidden>
+										@item.Id
+										@item.CompId
+									</td>
+									<td class="wdp-5">
+										@item.SDate
+									</td>
+									<td class="wdp-5">
+										@item.VNo
+									</td>
+									<td class="wdp-4">
+										@item.RefNo
+									</td>
+									<td class="wdp-5">										
+										@userManager.Users.Where(x => x.Id == item.UserCode).Select(x => x.UserName.Substring(0, 8).ToUpper()).FirstOrDefault()
+									</td>
+									<td class="wdp-12">
+										@item.TitleName  @item.Name @((int)item.Age) @item.AgeType @item.Sex
+									</td>
+									<td>
+										@item.DrName
+									</td>									
+									<td>
+										@item.TestDetailRecord
+									</td>
+									<td class="wdp-5">
+										@item.PaymentType
+									</td>
+									<td class="wdp-5">
+										@item.TotalAmt
+									</td>
+									<td class="wdp-5">
+										@item.DiscAmt
+									</td>
+									<td class="wdp-5">
+										@item.PaidAmt
+									</td>
+									<td class="wdp-5">
+										@item.BalAmt
+									</td>									
+									<td class="text-center">
+										@if (!await _mrepository.GetPatientDueReciptValidedByVoucherNo(item.VNo))
+										{
+											<a asp-action="CreatePatientDueReciptFile" asp-controller="Master" asp-route-id="0"  asp-route-VoucherNo=@item.VNo asp-route-isSuccess="false"class="mr-3 text-white">Select</a>
+										}
+									</td>
+								</tr>
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="14">
+									<h3 class="text-danger text-center">No Record found......</h3>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 bg-white">
+				<div class="form-group row text-right">
+					<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+						<h5 class="text-danger">Total Bal. :- @balamt</h5>
+					</div>
+					<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+						<h5 class="text-danger">Paid Bal :- @paidamt</h5>
+					</div>
+					<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">						
+						<h5 class="text-danger">Net Bal :- @(balamt - paidamt)</h5>
+					</div>
+					<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">						
+						<h5 class="text-danger">Total Patient :- @detailViewModelsx.Count()</h5>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+@section scripts{	
+	<script>
+		$('#DoctorTable1').height(screen.height - 300);
+			//$('#TestReportTable1').height(screen.height - 520);
+	</script>	
+
+}

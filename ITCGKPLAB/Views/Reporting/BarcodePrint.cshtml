@@ -1,0 +1,25 @@
+﻿@model PatientViewModel
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)	
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div style="width: 100%;">
+		<barcode content="@Model.VNo" width="200" height="25" /><br />
+		<P style="margin-top: -2px;text-align:center; ">@Model.VNo</P>
+		<p style="font-size: 9px; text-align:center; margin-top: -15px;">@(Model.Name + " " + (int)Model.Age + " " + Model.AgeType + " / " + Model.Sex + " " +Model.SDate )</p>
+	</div>
+	<br />
+	<div style="width: 100%;">		
+		<barcode content="@Model.VNo" width="200" height="25" /><br />
+		<P style="margin-top: -2px; text-align: center;">@Model.VNo</P>
+		<p style="font-size: 9px; text-align:center; margin-top: -15px;">@(Model.Name + " " + (int)Model.Age + " " + Model.AgeType + " / " + Model.Sex + " " +Model.SDate )</p>
+	</div>
+</body>
+</html>

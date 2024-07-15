@@ -1,0 +1,215 @@
+﻿@model ItemGroupViewModel
+@inject IFinancialRepository _repository;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Create Item Group File";
+	List<ItemGroupViewModel> stateViewModels = await _repository.GetAllItemGroup();
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Create Item Group  File</h3>
+		<form asp-action="CreateItemGroupFile" asp-controller="Financial" method="post" autocomplete="off">
+			<input asp-for="Id" class="form-control" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="ItGPCode" class="control-label col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"><input asp-for="ItGPCode" class="form-control " /></div>
+						<label asp-for="IHSNCode" class="control-label col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"><input asp-for="IHSNCode" class="form-control " /></div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ItemGroupName" class="control-label col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9"><input asp-for="ItemGroupName" class="form-control  CustomText" /></div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="IGSTPer" class="control-label col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="IGSTPer" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="DividedValue();ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="CGSTPer" class="control-label col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="CGSTPer" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="SGSTPer" class="control-label col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="SGSTPer" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="CessPer" class="control-label col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="CessPer" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+							<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="CreateItemGroupFile" asp-controller="Financial" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+				<input id="NameX" class="form-control " placeholder="Search Item Group Name" onkeypress="SearchItemGroupFile()" />
+			</div>
+		</form>
+		<div class="stateScroll" id="ItemGroupFileTable">
+			<table class="table table-striped table-bordered table-hover table-responsive-sm  Vouch">
+				<thead class="bluevioletWhiteListHeader">
+					<tr>
+						<th class="wdp-5">
+							Id
+						</th>
+						<th class="wdp-8">
+							Code
+						</th>
+						<th>
+							Name
+						</th>
+						<th class="text-right wdp-8">
+							IGST
+						</th>
+						<th class="text-right wdp-8">
+							CGST
+						</th>
+						<th class="text-right wdp-8">
+							SGST
+						</th>
+						<th class="text-right wdp-8">
+							Cess
+						</th>
+						<th class="actionListButtonWidthGrade">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody class="tbodyitemgroup">
+					@if (stateViewModels.Count() > 0)
+					{
+						@foreach (var item in stateViewModels)
+						{
+							<tr>
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@item.ItGPCode
+								</td>
+								<td>
+									@item.ItemGroupName
+								</td>
+								<td class="text-right">
+									@item.IGSTPer
+								</td>
+								<td class="text-right">
+									@item.CGSTPer
+								</td>
+								<td class="text-right">
+									@item.SGSTPer
+								</td>
+								<td class="text-right">
+									@item.CessPer
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditItemGroupPolicy")).Succeeded)
+									{
+										<a asp-action="CreateItemGroupFile" asp-controller="Financial" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteItemGroupPolicy")).Succeeded)
+									{
+										<a asp-action="DeleteItemGroupRecord" asp-controller="Financial" asp-route-id=@item.Id onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+									</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="4">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section Scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<script>
+		$(document).ready(function () {
+			$('#IHSNCode').focus();
+		});
+		$('#ItemGroupFileTable').height(screen.height - 390);
+	</script>
+	<script>
+		function DividedValue() {
+			var igstrate = $('#IGSTPer').val();
+			var cgstrate = 0;
+			if (igstrate > 0) {
+				cgstrate = parseFloat(igstrate / 2).toFixed(2);
+			}
+			$('#CGSTPer').val(cgstrate);
+			$('#SGSTPer').val(cgstrate);
+		}
+		function SearchItemGroupFile() {
+			var empobj = {
+				NameX: $('#NameX').val()
+			}
+			$.ajax({
+				url: "/Financial/ItemGroupDetailSearchRecord/",
+				method: "GET",
+				dataType: "json",
+				data: empobj,
+				contentType: "application/json",
+				success: function (result) {
+					var html = '';
+					$.each(result, function (key, item) {
+						html += '<tr class="small">';
+						html += '<td class="wdp-5" >' + item.id + '</td>';
+						html += '<td class="wdp-8">' + item.itGPCode + '</td>';
+						html += '<td>' + item.itemGroupName + '</td>';
+						html += '<td class="text-right wdp-8">' + item.igstPer + '</td>';
+						html += '<td class="text-right wdp-8">' + item.cgstPer + '</td>';
+						html += '<td class="text-right wdp-8">' + item.sgstPer + '</td>';
+						html += '<td class="text-right wdp-8">' + item.cessPer + '</td>';;
+						html += '<td class="text-center">' +
+							'<a href="ItemGroup-File?id=' + item.id + '"' + '<span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>' +
+							'</td >';
+						html += '</tr>';
+					});
+					$('.tbodyitemgroup').html(html);
+					// '<a href="AddressBook-Delete-File?id=' + item.ledgerMasterId + '"' +  '<span><i class="fas fa-times fa-2x icon-color-red"></i></span></a>' +
+				},
+				error: function (errormessage) {
+					console.error(errormessage.responseText);
+				}
+			});
+			return false;
+		}
+	</script>
+}

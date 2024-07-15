@@ -1,0 +1,138 @@
+﻿@model TestGroupMasterViewModel
+@inject IMasterRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Create TestGroup File";
+	var softwareheader = softwareoption.Value;
+	List<TestGroupMasterViewModel> StateViewModel = await _repository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1);
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomerGrade">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Create Test Group File</h3>
+		<form asp-action="CreateTestGroupFile" asp-controller="Master" method="post" autocomplete="off">
+			<input asp-for="Id" class="form-control" hidden />
+			<input asp-for="CompId" class="form-control " value="@(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-sm-12">
+					<div class="form-group row">
+						<label asp-for="Name" class="control-label col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9"><input asp-for="Name" class="form-control " /></div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ShortName" class="col-form-label  col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="ShortName" class="form-control  CustomText text-sm-right" />
+						</div>
+						<label asp-for="IPAmt1" class="col-form-label  col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="IPAmt1" class="form-control  CustomText text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); AutoConvertZeroIP();" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="IPPer1" class="form-control  CustomText text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); AutoConvertZeroIP();" placeholder="IP%" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+								<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="CreateTestGroupFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="TestGrouptable1">
+			<table class="table  table-striped table-bordered table-hover table-responsive-sm  Vouch">
+				<thead class="bluevioletWhiteListHeader">
+					<tr>
+						<th class="wdp-5">
+							Id
+						</th>
+						<th>
+							Name
+						</th>
+						<th class="text-right wdp-10">
+							Code
+						</th>
+						<th class="actionListButtonWidthGrade">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (StateViewModel.Count() > 0)
+					{
+						@foreach (var item in StateViewModel)
+						{
+							<tr>
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@item.Name
+								</td>
+								<td class="text-center wdp-10">
+									@item.ShortName
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditTestGroupPolicy")).Succeeded)
+									{
+										<a asp-action="CreateTestGroupFile" asp-controller="Master" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteTestGroupPolicy")).Succeeded)
+									{
+										<a asp-action="DeleteTestGroupRecord" asp-controller="Master" asp-route-id=@item.Id onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="4">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<script>
+		$(document).ready(function () {
+			$('#Name').focus();
+		});
+		$('#TestGrouptable1').height(screen.height - 380);
+		function AutoConvertZeroIP() {
+			var Amt1 = $('#IPPer1').val();
+			var Amt2 = $('#IPAmt1').val();
+			if (Amt1 > 0 && Amt2 > 0) {
+				$('#IPAmt1').val('0.00');
+			}
+		}
+	</script>
+}

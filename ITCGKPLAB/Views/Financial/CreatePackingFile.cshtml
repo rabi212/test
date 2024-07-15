@@ -1,0 +1,152 @@
+﻿@model PackingMasterViewModel
+@inject IFinancialRepository _repository;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Create Packing File";
+	List<PackingMasterViewModel> stateViewModels = await _repository.GetALLPackingMaster();
+	string submitValue = Model.PackId > 0 ? "Update" : "Save";
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomerGrade">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Create Packing  File</h3>
+		<form asp-action="CreatePackingFile" asp-controller="Financial" method="post" autocomplete="off">
+			<input asp-for="PackId" class="form-control" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="PackCode" class="control-label col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2"><input asp-for="PackCode" class="form-control " /></div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PackName" class="control-label col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9"><input asp-for="PackName" class="form-control  CustomText" /></div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+								<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="CreatePackingFile" asp-controller="Financial" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-12">
+				<input id="NameX" class="form-control " placeholder="Search Packing Name" onkeypress="SearchPackingFile()" />
+			</div>
+		</form>
+		<div class="stateScroll" id="ProductTable">
+			<table class="table table-striped table-bordered table-hover table-responsive-sm  Vouch">
+				<thead class="bluevioletWhiteListHeader">
+					<tr>
+						<th hidden>
+							Id
+						</th>
+						<th style="width:10%">
+							Code
+						</th>
+						<th>
+							Name
+						</th>
+						<th class="actionListButtonWidthGrade">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody class="tbodypackingfile">
+					@if (stateViewModels.Count() > 0)
+					{
+						@foreach (var item in stateViewModels)
+						{
+							<tr>
+								<td hidden>
+									@item.PackId
+								</td>
+								<td style="width:10%">
+									@item.PackCode
+								</td>
+								<td>
+									@item.PackName
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditProductMasterPolicy")).Succeeded)
+									{
+										<a asp-action="CreatePackingFile" asp-controller="Financial" asp-route-id=@item.PackId><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteProductMasterPolicy")).Succeeded)
+									{
+										<a asp-action="DeletePackingRecord" asp-controller="Financial" asp-route-id=@item.PackId onclick="return confirm ('Are you sure you want to delete record : @item.PackId')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="4">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<script>
+		$(document).ready(function () {
+			$('#PackName').focus();
+		});
+		$('#ProductTable').height(screen.height - 390);
+		function SearchPackingFile() {
+			var empobj = {
+				NameX: $('#NameX').val()
+			}
+			$.ajax({
+				url: "/Financial/PackingDetailSearchRecord/",
+				method: "GET",
+				dataType: "json",
+				data: empobj,
+				contentType: "application/json",
+				success: function (result) {
+					var html = '';
+					$.each(result, function (key, item) {
+						html += '<tr class="small">';
+						html += '<td hidden>' + item.packId + '</td>';
+						html += '<td class="wdp-10">' + item.packCode + '</td>';
+						html += '<td>' + item.packName + '</td>';
+						html += '<td class="text-center">' +
+							'<a href="Packing-File?id=' + item.packId + '"' + '<span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>' +
+							'</td >';
+						html += '</tr>';
+					});
+					$('.tbodypackingfile').html(html);
+					// '<a href="AddressBook-Delete-File?id=' + item.ledgerMasterId + '"' +  '<span><i class="fas fa-times fa-2x icon-color-red"></i></span></a>' +
+				},
+				error: function (errormessage) {
+					console.error(errormessage.responseText);
+				}
+			});
+			return false;
+		}
+	</script>
+}

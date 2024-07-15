@@ -1,0 +1,80 @@
+﻿@model RegisterViewModel
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@{
+	ViewData["Title"] = "Register";
+}
+<div class="CustomerNewUser pt-1 pl-1 pr-1 pb-1">
+	<h2 class="text-center text-white bg-danger">New User Register</h2>
+	<form asp-action="Register" asp-controller="Account" method="post" autocomplete="off">
+		<div class="form-row">
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+				<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+				</div>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+				<div class="form-group row">
+					<label asp-for="CompanyDetailId" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<select asp-for="CompanyDetailId" asp-items="(await _repository.GetAllCompany(0)).OrderBy(x=> x.CompName).Select(x=> new SelectListItem() { Text = x.TransCode +' '+ x.CompName +' ' + x.Address1 , Value = x.Id.ToString() })" class="form-control  small selectedItems">
+						</select>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="ClientId" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<select asp-for="ClientId" asp-items="(await _mrepository.GetAllClient(0)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name +' '+ x.Address1 , Value = x.Id.ToString() })" class="form-control  small selectedItems">
+						</select>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="UserName" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<input asp-for="UserName" class="form-control " />
+						@*<span asp-validation-for="UserName" class="text-danger"></span>*@
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="Email" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<input asp-for="Email" class="form-control " />
+						@*<span asp-validation-for="Email" class="text-danger"></span>*@
+					</div>
+				</div>
+
+				<div class="form-group row">
+					<label asp-for="Password" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<input asp-for="Password" class="form-control " />
+						@*<span asp-validation-for="Password" class="text-danger"></span>*@
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="ConfirmPassword" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<input asp-for="ConfirmPassword" class="form-control " />
+						@*<span asp-validation-for="ConfirmPassword" class="text-danger"></span>*@
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="City" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<input asp-for="City" class="form-control " />
+					</div>
+				</div>
+				<div class="form-group row">
+					<label asp-for="Address" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+					<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+						<input asp-for="Address" class="form-control " />
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+				<input type="submit" value="Register" class="btn btn-primary" />
+				<a asp-action="ListUsers" asp-controller="Administration" class="btn btn-outline-info">Cancel</a>
+			</div>
+
+		</div>
+	</form>
+</div>

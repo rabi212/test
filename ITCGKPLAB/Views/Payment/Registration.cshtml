@@ -1,0 +1,95 @@
+﻿@model RegistrationModel
+@{
+	ViewData["Title"] = "Registration";
+	//Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="CustomBorderRelative m-5">
+	<div class="CustomerLogin" style="margin-top:-10px;">
+		<h4 class="text-center text-white bg-secondary">Please Enter Details For Installment Payment</h4>
+		<form asp-action="Payment">
+			<div class="form-row">
+				<div class="col-sm-12 text-center"><div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany" style="border-bottom:3px solid green;"></div></div>
+				<div class="col-sm-12">
+					<div class="form-group row">
+						<label asp-for="CustomerCode" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-9">
+							<input asp-for="CustomerCode" class="form-control form-control-sm" onblur="GetCustomerNameByIdPayment();" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Name" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-9">
+							<input asp-for="Name" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Mobile" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-9">
+							<input asp-for="Mobile" class="form-control form-control-sm" hidden />
+							<label id="MobileId" class="col-form-label col-form-label-sm bg-white"></label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Email" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-9">
+							<input asp-for="Email" class="form-control form-control-sm" hidden />
+							<label id="EmailId" class="col-form-label col-form-label-sm bg-white"></label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Amount" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-9">
+							<input asp-for="Amount" class="form-control form-control-sm" hidden />
+							<label id="AmountId" class="col-form-label col-form-label-sm bg-white"></label>
+						</div>
+					</div>
+					<div class="form-group row" hidden>
+						<label asp-for="CustomerId" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-3">
+							<input asp-for="CustomerId" class="form-control form-control-sm" />
+						</div>
+						<label asp-for="InstallId" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-3">
+							<input asp-for="InstallId" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="InstallmentDetails" class="col-sm-3 col-form-label col-form-label-sm"></label>
+						<div class="col-sm-9">
+							<input asp-for="InstallmentDetails" class="form-control form-control-sm" hidden/>
+							<label id="InstallmentDetailsId" class="col-form-label col-form-label-sm bg-white"></label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col-12 text-right">
+							<button type="submit" class="btn btn-outline-primary" style="width:auto">CheckOut</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			@*<div class="row">
+				<div class="offset-1 col-2">
+					<strong>Amount</strong>
+				</div>
+				<div class="col-4">
+					₹ @Model.Amount.ToString("0.00")
+					<input type="hidden" asp-for="Amount" value="@Model.Amount" />
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-12 text-right">
+					<button type="submit" class="btn btn-outline-primary">Register</button>
+				</div>
+			</div>*@
+		</form>
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/OnlinePayment.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/OnlinePayment.min.js" asp-append-version="true"></script>
+	</environment>
+}

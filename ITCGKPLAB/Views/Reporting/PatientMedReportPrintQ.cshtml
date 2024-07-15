@@ -1,0 +1,414 @@
+﻿@model MedTestViewModel
+@inject IMasterRepository _repository;
+@*@inject ISettingRepository _srepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;*@
+@inject IConfiguration _configuration;
+@{
+	Layout = null;
+	//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	//Model.DoctorCompanyDetailsViews Model.DoctorCompanyDetailsViews = await _srepository.GetCompanyById((int)Model.CompId);
+	PageSetupViewModel pagedetails = await _repository.GetPageSetuppPrintComp((int)Model.CompId);
+	string domainname = _configuration.GetSection("Application:AppDomain").Value + "PatientReportMedical-Print?id=";
+	var Signaturephotopath = "~/CenterSignature/" + (Model.DoctorCompanyDetailsViews.ExitSignaturePhotoPath ?? "logo.jpg");
+	var SignatureLeft = "~/CenterSignatureLeft/" + (Model.DoctorCompanyDetailsViews.ExitSignaturePhotoPathLeft ?? "logo.jpg");
+	var SignatureRight = "~/CenterLogo/" + (Model.DoctorCompanyDetailsViews.ExitPhotoPath ?? "logo.jpg");
+	ViewData["TableStyle"] = pagedetails.TestLockTypeNDetails;
+	//Model.PatientViewModel Model.PatientViewModel = await _repository.GetPatientMasterById((int)Model.PtId);
+	var CandidateImage = "~/MedicalImage/" + (Model.ExitPhotoPath ?? "question.jpg");
+	DateTime date1 = Convert.ToDateTime(Model.DoctorCompanyDetailsViews.ValidedDate);
+	int totaldays = (int)(date1 - DateTime.Now.Date).Days;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div id="backgroundfixed">
+		<div id="bg-textfixed">@Model.DoctorCompanyDetailsViews.CompName</div>
+	</div>
+	@if (totaldays <= 0)
+	{	
+		<div>
+			<h3>QR Code invalid Please Contact Diagnostic Center</h3>
+		</div>
+	}
+    else
+    {
+		@if (pagedetails.BarcodeTop)
+		{
+			<div style="text-align:center;">
+				<span><barcode content="@Model.PatientViewModel.VNo" height="25" width="200" /></span>
+			</div>
+		}
+
+		@if (pagedetails.MedReportType == 0)
+		{
+			<table class="table-responsive-sm" style="border:2px solid black;@pagedetails.HeaderDetails">
+			<tbody class="bg-white cellLeft">
+				<tr class="noBorderBody">
+					<td class="wdp-12">Pt Ref. No.</td>
+					<td class="wdp-58"> :- <strong>@Model.PatientViewModel.RefNo</strong></td>
+					<td class="wdp-10">UID</td>
+					<td class="wdp-20"> :- @Model.PatientViewModel.VNo</td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-12">Reg.Date</td>
+					<td class="wdp-58">
+						:- @Model.PatientViewModel.RDate @Model.PatientViewModel.RTime
+						@if (Model.PatientViewModel.AdharNo != null)
+						{
+							<span><b>Adhaar No. :- @Model.PatientViewModel.AdharNo </b></span>
+						}
+					</td>
+					<td class="wdp-10">Sample Date</td>
+					<td class="wdp-20"> :- @Model.PatientViewModel.SDate @Model.PatientViewModel.STime</td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-12">Patient's Name </td>
+					<td class="wdp-58">:- <strong> @Model.PatientViewModel.TitleName @Model.PatientViewModel.Name</strong> Age/Sex :- @((int)Model.PatientViewModel.Age) @Model.PatientViewModel.AgeType / @Model.PatientViewModel.Sex</td>
+					<td class="wdp-10">Report Date</td>
+					<td class="wdp-20">:- @Model.PatientViewModel.ReportDate</td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-12">Ref. By</td>
+					<td class="wdp-58">:- <strong>Dr.  @Model.PatientViewModel.DrName</strong></td>
+					<td class="wdp-10">Status</td>
+					<td class="wdp-20"> :- @(Model.PatientViewModel.ReportApproved == "True" ? "Approved" : "")</td>
+				</tr>
+			</tbody>
+		</table>
+
+			<table class="table-responsive-sm" style="border:0;">
+			<thead class="bg-white ">
+				<tr>
+					<th colspan="8" class="text-center" style="font-size:22px;">
+						<b>Medical Report</b>
+					</th>
+				</tr>
+				<tr>
+					<th colspan="8" class="text-left">
+						Name of candidate : @Model.PatientViewModel.TitleName @Model.PatientViewModel.Name
+					</th>
+				</tr>
+				<tr>
+					@if (pagedetails.PrintMedReport)
+					{
+						<td>
+							<img id="user_img" src="@CandidateImage" style="width:150px;height:100px; border:solid; margin-top:5px;" asp-append-version="true" />
+						</td>
+					}
+					<td colspan="3" class="text-left">
+						Passport No. : @Model.PassportNo<br />
+						Date of Issue : @Model.DateOfIssue<br />
+						Nationality : @Model.Nationality<br />
+						Date of birth : @Model.DateOfBirth<br />
+						Trade : @Model.Trade<br />
+					</td>
+					<td colspan="3" class="text-left">
+						Ref. No. : @Model.PatientViewModel.RefNo<br />
+						Age / Sex : @((int)Model.PatientViewModel.Age) @Model.PatientViewModel.AgeType / @Model.PatientViewModel.Sex<br />
+						Exam Date : @Model.ExamDate<br />
+						Expiry Date : @Model.ExpiryDate<br />
+						Visa No.Date : @Model.VisaNoDate
+					</td>
+				</tr>
+
+			</thead>
+			<tbody>
+				<tr>
+					<td colspan="3">
+						<b>Medical Examination</b>
+					</td>
+					<td colspan="3">
+						<b>Laboratory Investigations</b>
+					</td>
+				</tr>
+				<tr class="noBorderHead">
+					<td class="cellLeft wdp-22">Type of Medical Exam</td>
+					<td class="wdp-12">Result</td>
+					<td class="wdp-12 cellLeft">Normal Range</td>
+					<td class="cellLeft wdp-22">Type of Lab Investigations</td>
+					<td class="wdp-12">Result</td>
+					<td class="wdp-12 cellLeft">Normal Range</td>
+				</tr>
+				@foreach (var item in Model.MedTestDetailViewModels)
+				{
+					<tr>
+						<td>
+							@item.TestDetailsA
+						</td>
+						<td>
+							@item.PatResultA
+						</td>
+						<td>
+							@item.RangeDetailsA
+						</td>
+						<td>
+							@item.TestDetailsB
+						</td>
+						<td>
+							@item.PatResultB
+						</td>
+						<td>
+							@item.RangeDetailsB
+						</td>
+					</tr>
+				}
+				<tr style="max-width:100%;" class="text-center noBorderBody">
+					<td colspan="6">
+						<p class="branchCenter-details" style="@pagedetails.TestLockTypeMDetails">
+							* Sample processed at National Reference Laboratory @Model.DoctorCompanyDetailsViews.CompName @Model.DoctorCompanyDetailsViews.Address1
+						</p>
+					</td>
+				</tr>
+				<tr style="max-width:100%;" class="noBorderBody">
+					<td colspan="8">
+						<p style="@pagedetails.TestLockTypeMDetails">
+							<b>Remarks : - </b>* @Model.MedRemarks
+						</p>
+					</td>
+				</tr>
+				<tr style="max-width:100%;" class="noBorderBody">
+					<td>
+						<qrcode content="@(domainname + Model.PatientViewModel.VNo)" alt="" />
+					</td>
+					@if (!pagedetails.BarcodeTop)
+					{
+						<td style="text-align:center;">
+							<span><barcode content="@Model.PatientViewModel.VNo" height="25" width="200" /></span>
+						</td>
+					}
+					<td colspan="1" class="text-center"><p style="font-size: 25px;">@Model.MedPatientType </p></td>
+					<td colspan="2"><p style="font-size: 18px; font-weight: bolder; font-style: italic;">@Model.PatientViewModel.TitleName @Model.PatientViewModel.Name </p></td>
+					<td colspan="1">
+						@if (Model.DoctorCompanyDetailsViews.SignaturePrint)
+						{
+							<div class="invoice-details clearfix" style="margin-top:-35px;text-align:right;margin-right:35px;">
+								<img src="@Signaturephotopath" style="width:auto;height:80px;" asp-append-version="true" />
+							</div>
+						}
+					</td>
+				</tr>
+				<tr style="max-width:100%;" class="text-center noBorderBody">
+					<td colspan="6"><p class="branchCenter-details" style="@pagedetails.TestLockTypeMDetails">**End Of Report**</p></td>
+				</tr>
+				@if (pagedetails.ReportFooterPrintB)
+				{
+					<tr style="max-width: 100%;" class="text-center noBorderBody">
+						<td colspan="6"><h5 class="branchCenter-details" style="margin-top: -15px;">@Html.Raw(pagedetails.ReportFooterB)</h5></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		}
+		else
+		{
+			<table class="table-responsive-sm" style="border: 2px solid black; @pagedetails.HeaderDetails">
+			<tbody class="bg-white " style="margin-top:25px;">
+				@if (pagedetails.PrintMedReport)
+				{
+					<tr class="noBorderBody">
+						<td rowspan="12" class="wdp-3">
+							<img id="user_img" src="@CandidateImage" style="height:190px; border:solid; margin-top:5px;" asp-append-version="true" />
+						</td>
+					</tr>
+				}
+				<tr class="noBorderBody">
+					<td class="wdp-10" style="border-top:2px solid black; border-bottom:2px solid black; border-left:2px solid black;"><strong>Exam. Date</strong></td>
+					<td class="wdp-15" style="border-top:2px solid black; border-bottom:2px solid black; border-right:2px solid black; "> : <strong>@Model.ExamDate</strong></td>
+					<td class="wdp-10" style="border-top:2px solid black; border-bottom:2px solid black;"><strong>Expiry Date</strong></td>
+					<td class="wdp-15" style="border-top:2px solid black; border-bottom:2px solid black; border-right:2px solid black;"><strong> : @Model.ExpiryDate</strong></td>
+					<td class="wdp-10" style="border-top:2px solid black;border-bottom: 2px solid black;"><strong>Token No.</strong> </td>
+					<td class="wdp-15" style="border-top:2px solid black;border-bottom: 2px solid black;"> : <strong>@Model.PatientViewModel.RefNo</strong></td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10">Name</td>
+					<td class="wdp-35" colspan="3"> : <strong> @Model.PatientViewModel.Name</strong></td>
+					<td class="wdp-10">UID</td>
+					<td class="wdp-15"> : @Model.PatientViewModel.VNo</td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10">Height</td>
+					<td class="wdp-15"> : <strong> @Model.PatHeight</strong></td>
+					<td class="wdp-10">Weight</td>
+					<td class="wdp-15"> : <strong> @Model.PatWeight</strong></td>
+					<td class="wdp-10">Sex</td>
+					<td class="wdp-15"> : <strong> @Model.PatientViewModel.Sex</strong></td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10">Status</td>
+					<td class="wdp-15"> : <strong> @Model.PatientMarried</strong></td>
+					<td class="wdp-10">Age</td>
+					<td class="wdp-15"> : <strong> @((int)Model.PatientViewModel.Age + " / " + Model.PatientViewModel.AgeType)</strong></td>
+					<td class="wdp-10">Nationality</td>
+					<td class="wdp-15"> : <strong> @Model.Nationality</strong></td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10">Passport No.</td>
+					<td class="wdp-15"> : <strong> @Model.PassportNo</strong></td>
+					<td class="wdp-10">Place of Issue</td>
+					<td class="wdp-15"> : <strong> @(Model.PlaceIssue)</strong></td>
+					<td class="wdp-10">Date</td>
+					<td class="wdp-15"> : <strong> @Model.DateOfIssue</strong></td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10" colspan="3">Position Applied For : <strong> @Model.Trade</strong> </td>
+					<td class="wdp-10" colspan="3">Recruting Agency : <strong> @Model.RecrutingAgency</strong></td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10" colspan="4"><b>History of any significant past illness including</b></td>
+					<td class="wdp-10">Religion</td>
+					<td class="wdp-15"> : <strong> @Model.PatientReligion</strong></td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10" colspan="6">
+						<b>
+							1)Pyschiatric and neurological disorders ( Epilopay, Depression...........)
+						</b>
+					</td>
+				</tr>
+				<tr class="noBorderBody">
+					<td class="wdp-10" colspan="3" style="border-bottom: 2px solid black;">
+						<b>
+							2) Allergy : @Model.AllergyIssue
+						</b>
+					</td>
+					<td class="wdp-10" colspan="3" style="border-bottom: 2px solid black;">
+						<b>
+							3) Others : @Model.OtherIssue
+						</b>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+			<table class="table-responsive-sm" style="border:0;">
+			<thead class="bg-white ">
+				<tr style="@pagedetails.HeaderDetails">
+					<td colspan="8" class="d-flex" style="border-right: 2px solid black;">
+						I hereby permit then <b>@Model.DoctorCompanyDetailsViews.CompName</b>
+						and the undersigned physician to furnish such information the company may need pertaining to my health staus and other
+						pertigent and medical finding and do hereby release them from any and all legal responsibility by doing so. I also certify
+						that my medical history contain abouve is true and any false statement will disqualigy me from my employment,
+						benifits and claims.
+					</td>
+				</tr>
+
+			</thead>
+			<tbody>
+				<tr style="@pagedetails.ReportHeaderDetails">
+					<td colspan="4" class="text-center">
+						<b>MEDICAL EXAMINATION</b>
+					</td>
+					<td colspan="4" class="text-center" style="border-right: 2px solid black;">
+						<b>LABORATORY INVESTIGATIONS</b>
+					</td>
+				</tr>
+				<tr class="noBorderHead" style="@pagedetails.HeaderSecondDetails">
+					<td class="wdp-22 text-center" colspan="3"><b>TYPE OF MEDICAL EXAMINATION</b></td>
+					<td class="wdp-12 text-center"><b>RESULTS</b></td>
+					<td class="wdp-22 text-center" colspan="3"><b>TYPE OF LAB EXAMINATION</b></td>
+					<td class="wdp-12 text-center" style="border-right: 2px solid black;"><b>RESULTS</b></td>
+				</tr>
+				@{
+					int countrecord = Model.MedTestDetailViewModels.Count;
+					int rcdno = 1;
+				}
+				@foreach (var item in Model.MedTestDetailViewModels)
+				{
+					string bordstyle = countrecord == rcdno ? "border-bottom:1px solid gray;" : "None";
+					string bordstyleColA = countrecord != rcdno ? (item.TestLineA == true ? "border-bottom:1px solid gray;" : "None") : "None";
+					string bordstyleColB = countrecord != rcdno ? (item.TestLineB == true ? "border-bottom:1px solid gray;" : "None") : "None";
+					string leftspacestringA = ((item.TestDetailsA.Length - item.TestDetailsA.Trim().Length) * 4).ToString() + "px";
+					string leftspacestringB = ((item.TestDetailsB.Length - item.TestDetailsB.Trim().Length) * 4).ToString() + "px";
+					int CountRcdA = (item.TestDetailsA.Length - item.TestDetailsA.Trim().Length);
+					int CountRcdB = (item.TestDetailsB.Length - item.TestDetailsB.Trim().Length);
+					<tr class="noBorderBody" style="@pagedetails.HeaderDetails">
+						<td colspan="3" style="border-left: 1px solid gray;border-right: 1px solid gray;padding-left:@leftspacestringA; @bordstyle @bordstyleColA @bordstyleColA">
+							@if (CountRcdA == 0)
+							{<b>@item.TestDetailsA</b>}
+						else
+						{ @item.TestDetailsA}
+						</td>
+						<td style="@bordstyleColA @bordstyleColA">
+							@(item.PatResultA + " " +	item.RangeDetailsA)
+						</td>
+						<td colspan="3" style="border-left: 1px solid gray;border-right: 1px solid gray;padding-left:@leftspacestringB;@bordstyle @bordstyleColB @bordstyleColB">
+							@if (CountRcdB == 0)
+							{<b>@item.TestDetailsB</b>}
+						else
+						{ @item.TestDetailsB}
+						</td>
+						<td style="border-right: 2px solid gray; @bordstyle @bordstyleColB @bordstyleColB ">
+							@(item.PatResultB + " " + item.RangeDetailsB)
+						</td>
+					</tr>
+					rcdno++;
+				}
+				<tr style="max-width:100%;" class="noBorderBody">
+					<td colspan="8">
+						<p style="@pagedetails.HeaderDetails">
+							<b>Remarks : - </b>@Model.MedRemarks
+						</p>
+					</td>
+				</tr>
+				<tr style="max-width:100%;" class="noBorderBody">
+					<td>
+						<qrcodem content="@(domainname + Model.PatientViewModel.VNo)" alt="" />
+					</td>
+					<td class="text-center">
+						<div style="font-size: 25px; font-style:italic; font-weight:bold; border :2px solid black;padding: 5px; border-radius: 35px;">
+							@Model.MedPatientType
+						</div>
+					</td>
+					<td colspan="2"><p style="font-size: 17px; font-weight: bolder; font-style: italic;" class="pl-1">@Model.PatientViewModel.TitleName @Model.PatientViewModel.Name </p></td>
+					<td colspan="4">
+
+						@if (Model.DoctorCompanyDetailsViews.PhotoPathPrint)
+						{
+							<div class="invoice-details clearfix" style="margin-top:-35px;text-align:right;margin-right:35px;">
+								<img src="@SignatureRight" style="width:auto;height:80px;" asp-append-version="true" />
+							</div>
+						}
+						@if (Model.DoctorCompanyDetailsViews.SignaturePrintLeft)
+						{
+							<div class="invoice-details clearfix" style="margin-top:-35px;text-align:right;margin-right:35px;">
+								<img src="@SignatureLeft" style="width:auto;height:80px;" asp-append-version="true" />
+							</div>
+						}
+					</td>
+				</tr>
+				<tr style="max-width: 100%;" class="noBorderBody">
+					<td colspan="3">Dear Sir,</td>
+					@if (!pagedetails.BarcodeTop)
+					{
+						<td colspan="6"><span><barcode content="@Model.PatientViewModel.VNo" height="25" width="200" /></span></td>
+					}
+				</tr>
+				<tr style="max-width: 100%;" class="noBorderBody">
+					<td colspan="8">Mentioned above is the medical Report for</td>
+				</tr>
+				<tr style="max-width: 100%;" class="noBorderBody">
+					<td>Who is </td>
+					<td colspan="7">for the above mentioned job. This report is not valid for M.L.C. Purpose and aboard</td>
+				</tr>
+			</tbody>
+		</table>
+
+		}
+		<div class="clearfix">
+		</div>
+	}
+	@*@if (pagedetails.ReportFooterPrintA)
+		{
+			@Html.Raw(pagedetails.ReportFooterA)
+		}
+		else
+		{
+			@Html.Raw(pagedetails.ReportFooterB)
+		}*@
+</body>
+</html>

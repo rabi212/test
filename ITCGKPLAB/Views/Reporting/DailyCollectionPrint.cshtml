@@ -1,0 +1,291 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId);
+	List<PatientViewModel> patientList = await _iMasterRepository.GetPatientDateWise(Model.CompId, Model.UserCode, Model.TestGroupName, Model.AgentAcCode, Model.DoctorAcCode, Model.FromDate, Model.UptoDate, Model.PaymentMode, Model.DrInLab);
+	var patienttype = patientList.GroupBy(x => new { x.Type }).Select(n => new { n.Key.Type }).ToList();
+	var patientDate = patientList.GroupBy(x => new { x.SDate,x.Type } ).Select(n => new { n.Key.SDate,n.Key.Type }).ToList();
+	int memberCount = 1; var classColor = "";
+	var paymengrouplist = patientList.GroupBy(x => new { x.PaymentType });
+
+	var modelgroup = Model.GroupTypeReport;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body >
+	<div class="branchCenter-details">
+		<h3>@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">Date Wise Report</h4>
+	</div>
+
+	<div class="invoice-to">
+		<strong>From Date : @Model.FromDate.ToString("dd/MM/yyyy")</strong><strong>  Upto Date : @Model.UptoDate.ToString("dd/MM/yyyy")</strong>
+	</div>	
+		<table class="table-responsive-sm border fontsizebody">
+			<thead>
+				<tr class="text-left">
+					<th class="wdp-3">S.No.</th>
+					<th class="wdp-4">Date</th>
+					<th class="wdp-7">
+						UID
+					</th>
+					<th class="wdp-3">
+						Ref.No.
+					</th>
+					<th class="wdp-20">
+						Patient's Name
+					</th>
+					<th class="wdp-20">
+						Doctor's Name
+					</th>
+					<th>
+						Test's Details
+					</th>
+					<th>
+						Payment
+					</th>
+					<th>
+						Total Amt.
+					</th>
+					<th>
+						Dis.Amt.
+					</th>
+					<th>
+						Paid Amt.
+					</th>
+					<th>
+						Bal.Amt.
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				@if (modelgroup)
+				{
+					@foreach (var itemtype in patienttype)
+					{
+						<tr>
+							<td colspan="12">
+								<strong>@itemtype</strong>
+							</td>
+						</tr>
+						@foreach (var itemn in patientDate.Where(x => x.Type == itemtype.Type))
+						{
+							memberCount = 1;
+							foreach (var itemx in patientList.Where(x => x.SDate == itemn.SDate && x.Type == itemn.Type))
+							{
+								classColor = itemx.ReportCancel == "True" ? "background-color:lightyellow;" : "background-color:white;";
+
+								//string testdetils = null;
+								//List<PatientDetailsMasterViewModel> testlist = await _iMasterRepository.GetPatientDetailsById(itemx.Id);
+								//foreach (var item in testlist)
+								//{
+
+								//	testdetils = testdetils != null ? testdetils + "," + item.TestMasterViewModels.TestCode : item.TestMasterViewModels.TestCode;
+								//}
+								<tr style="@classColor">
+									<td class="bodyLeftPadding">@memberCount</td>
+									<td>
+										@itemx.SDate
+									</td>
+									<td>
+										@itemx.VNo
+									</td>
+									<td>@itemx.RefNo</td>
+									<td>
+										@itemx.TitleName  @itemx.Name   @(Convert.ToInt32(itemx.Age))   @itemx.AgeType   /  @itemx.Sex
+									</td>
+									<td>
+										@itemx.LedgerMasterViewModel.PartyName   @itemx.LedgerMasterViewModel.Address3
+									</td>
+									<td>
+										@itemx.TestDetailRecord
+									</td>
+									<td class="wdp-5">
+										@itemx.PaymentType
+									</td>
+									<td class="numeric-cell">
+										@itemx.TotalAmt
+									</td>
+									<td class="numeric-cell">
+										@itemx.DiscAmt
+									</td>
+									<td class="numeric-cell">
+										@itemx.PaidAmt
+									</td>
+									<td class="numeric-cell">
+										@itemx.BalAmt
+									</td>
+								</tr>
+								memberCount++;
+							}
+							<tr>
+								<td colspan="8" class="numeric-cell">
+									<strong>@itemn Total Amt.</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate && x.Type == itemn.Type).Sum(x => x.TotalAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate && x.Type == itemn.Type).Sum(x => x.DiscAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate && x.Type == itemn.Type).Sum(x => x.PaidAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate && x.Type == itemn.Type).Sum(x => x.BalAmt)</strong>
+								</td>
+							</tr>
+						}
+						<tr>
+							<td colspan="8" class="numeric-cell">
+								<strong>@itemtype Total Amt.</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Where(x => x.Type == itemtype.Type).Sum(x => x.TotalAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Where(x => x.Type == itemtype.Type).Sum(x => x.DiscAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Where(x => x.Type == itemtype.Type).Sum(x => x.PaidAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Where(x => x.Type == itemtype.Type).Sum(x => x.BalAmt)</strong>
+							</td>
+						</tr>
+					}
+				}
+				else
+				{
+					memberCount = 1;
+					foreach (var itemx in patientList)
+					{
+						classColor = itemx.ReportCancel == "True" ? "background-color:lightyellow;" : "background-color:white;";
+
+						//string testdetils = null;
+						//List<PatientDetailsMasterViewModel> testlist = await _iMasterRepository.GetPatientDetailsById(itemx.Id);
+						//foreach (var item in testlist)
+						//{
+
+						//	testdetils = testdetils != null ? testdetils + "," + item.TestMasterViewModels.TestCode : item.TestMasterViewModels.TestCode;
+						//}
+								<tr style="@classColor">
+									<td class="bodyLeftPadding">@memberCount</td>
+									<td>
+										@itemx.SDate
+									</td>
+									<td>
+										@itemx.VNo
+									</td>
+									<td>@itemx.RefNo</td>
+									<td>
+										@itemx.TitleName  @itemx.Name   @(Convert.ToInt32(itemx.Age))   @itemx.AgeType   /  @itemx.Sex
+									</td>
+									<td>
+										@itemx.LedgerMasterViewModel.PartyName   @itemx.LedgerMasterViewModel.Address3
+									</td>
+									<td>
+										@itemx.TestDetailRecord
+									</td>
+									<td class="wdp-5">
+										@itemx.PaymentType
+									</td>
+									<td class="numeric-cell">
+										@itemx.TotalAmt
+									</td>
+									<td class="numeric-cell">
+										@itemx.DiscAmt
+									</td>
+									<td class="numeric-cell">
+										@itemx.PaidAmt
+									</td>
+									<td class="numeric-cell">
+										@itemx.BalAmt
+									</td>
+								</tr>
+								memberCount++;
+							}							
+					
+				}
+				<tr>
+					<td colspan="8" class="numeric-cell">
+						<strong>Grand Total Amt.</strong><br />
+						<strong>Total Cancel Amt.</strong><br />
+						<strong>Net Amt.</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.TotalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.TotalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.TotalAmt)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.DiscAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.DiscAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.DiscAmt)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.PaidAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.PaidAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.PaidAmt)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.BalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.BalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.BalAmt)</strong>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="table-responsive-sm border fontsizebody">
+			<thead>
+				<tr class="text-left">					
+					<th class="wdp-15">
+						Payment Mode
+					</th>					
+					<th class="numeric-cell">
+						Total Amt.
+					</th>
+					<th class="numeric-cell">
+						Dis.Amt.
+					</th>
+					<th class="numeric-cell">
+						Paid Amt.
+					</th>
+					<th class="numeric-cell">
+						Bal. Amt.
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var item in paymengrouplist)
+				{
+					<tr>
+						<td class="wdp-15">
+							@item.Key.PaymentType
+						</td>
+						<td class="numeric-cell">
+							@(patientList.Where(x => x.PaymentType == item.Key.PaymentType).Sum(x => x.TotalAmt))
+						</td>
+						<td class="numeric-cell">
+							@(patientList.Where(x => x.PaymentType == item.Key.PaymentType).Sum(x => x.DiscAmt))
+						</td>
+						<td class="numeric-cell">
+							@(patientList.Where(x => x.PaymentType == item.Key.PaymentType).Sum(x => x.PaidAmt))
+						</td>
+						<td class="numeric-cell">
+							@(patientList.Where(x => x.PaymentType == item.Key.PaymentType).Sum(x => x.BalAmt))
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+</body>
+</html>

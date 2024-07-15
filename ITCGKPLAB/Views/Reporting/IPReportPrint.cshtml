@@ -1,0 +1,143 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@inject IFinancialRepository _iFinanceRepository;
+@inject IGeneralMethod _grepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId > 0 ? Model.CompId : 1);
+
+	List<PatientViewModel> voucherList = new List<PatientViewModel>();
+	voucherList = await _iMasterRepository.PatientDoctorIPDateWise(Model.CompId, Model.DoctorAcCode, Model.FromDate, Model.UptoDate);
+
+	int memberCount = 1;
+	var headCodeList = voucherList.GroupBy(x => x.DoctorAcCode).Select(x => x.Key).ToList();
+	double totalAmt = 0; double disAmt = 0; double IPAmt = 0;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	@foreach (var item in headCodeList)
+	{
+		memberCount = 1; totalAmt = 0; disAmt = 0; IPAmt = 0;
+		LedgerMasterViewModel head = await _iFinanceRepository.GetAddressMasterById(item.Value);
+			<div class="invoice-to">
+				Name : Dr  @head.PartyName @head.Address3 @("     " + head.Address1)				
+				<br /><br /><br /><br />
+				Name : Dr  @head.PartyName @head.Address3 @("     " + head.Address1)
+			</div>
+			<div class="invoice-details">
+				From Date : @Model.FromDate.ToString("dd/MM/yyyy") To : @Model.UptoDate.ToString("dd/MM/yyyy")<br />
+				<br />
+				RECEIVER SIGNATURE
+				<br /><br />
+				From Date : @Model.FromDate.ToString("dd/MM/yyyy") To : @Model.UptoDate.ToString("dd/MM/yyyy")
+			</div>
+		<table class="table-responsive-sm border fontsizebody">
+			<thead>
+				<tr class="text-left">
+					<th>S.No.</th>
+					<th>Date</th>
+					<th class="wdp-20">
+						Patient's Name
+					</th>
+					<th>
+						Test's Details
+					</th>
+					@if (Model.TotalAmtShow == true)
+					{
+						<th>
+							Total
+						</th>
+					}
+					<th>
+						IP Amt.
+					</th>
+					<th>
+						Dis.Amt.
+					</th>
+					<th>
+						Net IP
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				@*voucherList.Select(x => x.VItemMasterDetails.Where(xx => xx.AcCode1 == item))*@
+				@foreach (var itemn in voucherList.Where(x => x.DoctorAcCode == item.Value))
+				{
+					<tr>
+						<td class="bodyLeftPadding">@memberCount</td>
+						<td>
+							@itemn.RDate
+						</td>						
+						<td>
+							@itemn.TitleName  @itemn.Name @((int)itemn.Age) @itemn.AgeType @itemn.Sex
+						</td>
+						<td>
+							@itemn.TestDetailRecord
+						</td>
+						@if (Model.TotalAmtShow == true)
+						{
+							<td class="numeric-cell">
+								@itemn.TotalAmt
+							</td>
+						}						
+						<td class="numeric-cell">
+							@itemn.TotalIPAmt
+						</td>
+						<td class="numeric-cell">
+							@(itemn.DiscountType == "Doctor" ? itemn.DiscAmt : "0.00")
+						</td>
+						<td class="numeric-cell">
+							@(itemn.DiscountType == "Doctor" ? itemn.TotalIPAmt - itemn.DiscAmt : itemn.TotalIPAmt)
+						</td>
+					</tr>
+					totalAmt += Convert.ToDouble(itemn.TotalAmt);
+					IPAmt += Convert.ToDouble(itemn.TotalIPAmt);
+					disAmt += Convert.ToDouble(itemn.DiscountType == "Doctor" ? itemn.DiscAmt : 0);
+					memberCount++;
+
+				}
+			<tr>
+				@{ string wordRs = await _grepository.Customizedwords((double)(IPAmt - disAmt));}
+
+				@if (Model.TotalAmtShow == true)
+				{
+					<td colspan="3">
+						Rs. (In word):-  @wordRs
+					</td>
+					<td class="numeric-cell">
+						<strong>Total Amt.</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong> @(totalAmt.ToString("#0.00"))</strong>
+					</td>
+				}
+				else
+				{
+					<td colspan="4">
+						Rs. (In word):-  @wordRs
+					</td>
+				}
+
+				<td class="numeric-cell">
+					<strong>@(IPAmt.ToString("#0.00"))</strong>
+				</td>
+				<td class="numeric-cell">
+					<strong> @(disAmt.ToString("#0.00"))</strong>
+				</td>
+				<td class="numeric-cell">
+					<strong>@((IPAmt - disAmt).ToString("#0.00"))</strong>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+		<div style="page-break-after: always;"></div>
+	}
+</body>
+</html>

@@ -1,0 +1,159 @@
+﻿@model OpenItemMasterViewModel
+@inject ISettingRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	ViewData["Title"] = "Openning Item Stock";
+	string submitValue = Convert.ToInt32(Model.OpnId) > 0 ? "Update" : "Save";
+	var softwareheader = softwareoption.Value;
+	var Currentuser = await userManager.GetUserAsync(User);
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h4 class="text-center text-white HeadingColorRed">Openning Stock Files</h4>
+		<form asp-action="CreateOpenningItem" asp-controller="Financial" method="post" id="form" autocomplete="off">
+			<input asp-for="OpnId" class="form-control" hidden />
+			<input asp-for="UserCode" class="form-control" value="@(Model.OpnId > 0 ? Model.UserCode : Currentuser.Id)" hidden />
+			<input asp-for="CurrentNo" class="form-control" hidden />
+			<input asp-for="RowId" class="form-control" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					@if (User.IsInRole("SuperAdmin"))
+					{
+						<div class="form-group row">
+							<label asp-for="CompId" class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 col-form-label "></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+								@if (!softwareheader.SoftwareMode)
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetOpenItemVoucherSrNo()">
+										@*<option value="@companyDetail.Id.ToString()">@companyDetail.TransCode</option>*@
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetOpenItemVoucherSrNo()">
+										@*<option value="@companyDetail.Id.ToString()">@companyDetail.TransCode</option>*@
+									</select>
+								}
+							</div>
+							<label asp-for="OpnVNo" class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 col-form-label "></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								<input asp-for="OpnVNo" class="form-control " />
+							</div>
+							<label asp-for="OpnDate" class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 col-form-label "></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								<input asp-for="OpnDate" class="form-control " />
+							</div>
+						</div>
+					}
+					else
+					{
+						<div class="form-group row">
+							<label asp-for="CompId" class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 col-form-label "></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+								@if (!softwareheader.SoftwareMode)
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(companyDetail.Id)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetOpenItemVoucherSrNo()">
+										@*<option value="@companyDetail.Id.ToString()">@companyDetail.TransCode</option>*@
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(companyDetail.Id)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetOpenItemVoucherSrNo()">
+										@*<option value="@companyDetail.Id.ToString()">@companyDetail.TransCode</option>*@
+									</select>
+								}
+							</div>
+							<label asp-for="OpnVNo" class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 col-form-label "></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								<input asp-for="OpnVNo" class="form-control " />
+							</div>
+							<label asp-for="OpnDate" class="col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1 col-form-label "></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+								<input asp-for="OpnDate" class="form-control " />
+							</div>
+						</div>
+					}
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-sm-12">
+					<div class="stateScroll boxcolorback" id="OpenItemTable1">
+						<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="OpenItemTableWidth">
+							<thead class="RedDarkWhiteListHeader small">
+								<tr>
+									<th class="text-center wdp-3">##</th>			@*Action*@
+									<th class="wdp-5">SrNo.</th>
+									<th class="wdp-26">Item</th>
+									<th class="text-sm-right wdp-10">Batch No.</th>
+									<th class="text-sm-right wdp-8">Exp.Date</th>
+									<th class="text-sm-right wdp-6">Opn. Case</th>
+									<th class="text-sm-right wdp-6">Free Unit</th>
+									<th class="text-sm-right wdp-8">Total(Pcs)</th>
+									<th class="text-sm-right wdp-5">GST%</th>
+									<th class="text-sm-right wdp-8">Pur.Rate</th>
+									<th class="text-sm-right wdp-8">MRP</th>
+									<th class="text-sm-right wdp-8">Sale Rate</th>
+								</tr>
+							</thead>
+							<tbody id="orderItemContinaer">
+								@Html.EditorFor(model => model.OpenItemMasterDetailViewModels)
+							</tbody>
+							<tfoot>
+								<tr>
+									@*<td><input type="button" id="btnAdd" value="New" class="btn btn-primary btn-sm" style="width:auto;" /></td>*@
+									<td class="text-center">
+										<a href="#" id="btnAdd" type="button" class="mt-1"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+									</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<b>
+						<label id="GrandPcs" class="col-form-label  text-danger"></label>
+						<label id="GrandMRPAmt" class="col-form-label  text-success"></label>
+						<label id="GrandPurAmt" class="col-form-label  text-primary"></label>
+					</b>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 text-right">
+					<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+					<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+					<a asp-action="CreateOpenningItem" asp-controller="Financial" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+					<a asp-action="SearchOpenningItemFile" asp-controller="Financial" class="btn btn-outline-info  btn-sm">Cancel</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+	@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+	<environment include="Development">
+		<script src="~/js/OpenItemStock.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/OpenItemStock.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#OpenItemTable1').height(screen.height - 360);
+		$('#OpenItemTableWidth').width(screen.width - 80);
+	</script>
+}

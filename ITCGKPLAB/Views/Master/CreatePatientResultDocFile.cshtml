@@ -1,0 +1,190 @@
+﻿@model TempResultViewFile
+@inject IMasterRepository _repository;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Patient Result Document File";
+	var claimsno = 0;
+	// @foreach (var item in await _repository.GetPatientTestDetails(Model.PatientId, Model.CompId))
+	List<PatientDetailsMasterViewModel> detailtestList = await _repository.GetPatientTestDetails(Model.PatientId, Model.CompId, "Document");
+	List<PatientDetailsMasterViewModel> detailtestgroup = await _repository.GetPatientTestDetails(Model.PatientId, Model.CompId, "Document");
+	PatientViewModel patientViewModel = await _repository.GetPatientMasterById(Model.PatientId);
+}
+<div class="modal" id="ModelId" role="dialog" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered modal-sm" role="document" style="height:20px;">
+		@*<div class="modal-content">
+				<div class="modal-body" id="ModelBodyId">
+					<img src="~/LoaderIcon/LoaderBox.gif" style="width:350px;height:auto;"/>
+				</div>
+			</div>*@
+		@*<img src="~/LoaderIcon/LoaderBox.gif" style="height:100px;display:inline-flex;" />*@
+		<div class="spinner-grow text-primary" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+		<div class="spinner-grow text-secondary" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+		<div class="spinner-grow text-success" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+		<div class="spinner-grow text-danger" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+	</div>
+</div>
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="CreatePatientResultDocFile" method="post" id="form" autocomplete="off">
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="row-cols-12 anyScrollResult">
+						<div class="form-group row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+								@if (ViewBag.isSuccess == true)
+								{
+									<div class="alert alert-success alert-dismissible fade show" role="alert">
+										<strong>@ViewBag.message</strong>
+										<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+											<span aria-hidden="true">&times;</span>
+										</button>
+									</div>
+								}
+							</div>
+							@for (int i = 0; i < detailtestList.Count; i++)
+							{
+								if (claimsno == 0)
+								{
+									<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 pl-3 text-secondary">
+										<div class="form-check m-1">
+											<input asp-for="@detailtestList[i].TestId" hidden />
+											<input type="hidden" asp-for="@detailtestList[i].TestMasterViewModels.TestCode " />
+											<input asp-for="@detailtestList[i].isSelected" class="form-check-input" onmouseup="FindIndexNo(@detailtestList[i].TestId,@i)" />
+											<b>
+												<label class="form-check-label" asp-for="@detailtestList[i].isSelected" onclick="FindIndexNo(@detailtestList[i].TestId,@i)">
+													@detailtestList[i].TestMasterViewModels.TestCode
+												</label>
+											</b>
+										</div>
+									</div>
+								}
+								if (claimsno == 1)
+								{
+									<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 pl-3 text-info">
+										<div class="form-check m-1">
+											<input asp-for="@detailtestList[i].TestId" hidden />
+											<input type="hidden" asp-for="@detailtestList[i].TestMasterViewModels.TestCode " />
+											<input asp-for="@detailtestList[i].isSelected" class="form-check-input" onmouseup="FindIndexNo(@detailtestList[i].TestId,@i)" />
+											<b>
+												<label class="form-check-label" asp-for="@detailtestList[i].isSelected" onclick="FindIndexNo(@detailtestList[i].TestId,@i)">
+													@detailtestList[i].TestMasterViewModels.TestCode
+												</label>
+											</b>
+										</div>
+									</div>
+								}
+								if (claimsno == 2)
+								{
+									<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 pl-3 text-danger">
+										<div class="form-check m-1">
+											<input asp-for="@detailtestList[i].TestId" hidden />
+											<input type="hidden" asp-for="@detailtestList[i].TestMasterViewModels.TestCode " />
+											<input asp-for="@detailtestList[i].isSelected" class="form-check-input" onmouseup="FindIndexNo(@detailtestList[i].TestId,@i)" />
+											<b>
+												<label class="form-check-label" asp-for="@detailtestList[i].isSelected" onclick="FindIndexNo(@detailtestList[i].TestId,@i)">
+													@detailtestList[i].TestMasterViewModels.TestCode
+												</label>
+											</b>
+										</div>
+									</div>
+								}
+								if (claimsno == 3)
+								{
+									<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 pl-3 text-capitalize">
+										<div class="form-check m-1">
+											<input asp-for="@detailtestList[i].TestId" hidden />
+											<input type="hidden" asp-for="@detailtestList[i].TestMasterViewModels.TestCode " />
+											<input asp-for="@detailtestList[i].isSelected" class="form-check-input" onmouseup="FindIndexNo(@detailtestList[i].TestId,@i)" />
+											<b>
+												<label class="form-check-label" asp-for="@detailtestList[i].isSelected" onclick="FindIndexNo(@detailtestList[i].TestId,@i)">
+													@detailtestList[i].TestMasterViewModels.TestCode
+												</label>
+											</b>
+										</div>
+									</div>
+								}
+								if (claimsno < 3)
+								{
+									claimsno++;
+								}
+								else { claimsno = 0; }
+							}
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-3">
+					<div class="form-group row">
+						<input asp-for="CompId" class="form-control" hidden />
+						<input asp-for="RptDate" class="form-control" hidden />
+						<input asp-for="PatientId" class="form-control" hidden />
+						<input asp-for="CountGroupRecord" class="form-control" hidden />
+						<input asp-for="RowId" class="form-control  CustomText" hidden />  @*Test Group Id*@
+						<input asp-for="DocType" class="form-control" hidden />
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							@*<select asp-for="TestListId" asp-items="(detailtestgroup.Select(x=> new SelectListItem() { Text = x.TestMasterViewModels.TestCode, Value = x.TestId.ToString() }))" class="form-control  selectedItems" onblur="DisplayInvestigationFile();">
+			</select>*@
+							<select asp-for="TestListId" asp-items="(detailtestgroup.Select(x=> new SelectListItem() { Text = x.TestMasterViewModels.TestCode, Value = x.TestId.ToString() }))" class="form-control  selectedItems" onchange="DisplayInvestigationFile();" onblur="GetAllDocumentGroupCountTrueFalse(); CustomInvestigationCurrentFile();">
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-9">
+					<div class="form-group row">
+						<label asp-for="DrInLab" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<select asp-for="DrInLab" asp-items=" (await _repository.GetDoctorMasterLabList(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control   selectedItems">
+							</select>
+						</div>
+						<label asp-for="ALLTestCode" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							@*<select asp-for="ALLTestCode" asp-items=" (await _repository.GetAllTestMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1,0,0)).OrderBy(x=> x.TestCode).Select(x=> new SelectListItem() { Text = x.TestCode, Value = x.Id.ToString() })" class="form-control   selectedItems" onblur="CustomInvestigationFile();">
+							</select>*@
+							<select asp-for="ALLTestCode" asp-items=" (await _repository.GetAllTestDocMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.TestCode).Select(x=> new SelectListItem() { Text = x.TestCode, Value = x.Id.ToString() })" class="form-control   selectedItems" onchange="CustomInvestigationCurrentFile();">
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-12">
+					<div class="form-group row" style="background-color:white;" >
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" >
+							<textarea asp-for="TestDocumentain" class="form-control  small DocumentContainerDetails" rows="24" ></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9" style="font-size:0.85rem;">
+					<label> <b> Ref.No. :- @patientViewModel.RefNo UID @patientViewModel.VNo</b></label><span>
+						<label>Dt :- @patientViewModel.SDate</label>
+						<label>Name :- @patientViewModel.Name @(Convert.ToInt32( patientViewModel.Age))  @patientViewModel.AgeType  </label>
+						<label>Sex :- @patientViewModel.Sex</label>
+					</span>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 text-right">
+					<input type="submit" value="Update" id="submit" class="btn btn-sm btn-success" />
+					<a asp-action="PatientReportPrintDoc" asp-controller="Reporting" class="btn btn-sm btn-outline-primary " asp-route-id="@Model.PatientId" target="_blank">Print</a>
+					<a asp-action="ResultSearchRecord" asp-controller="Master" asp-route-Search="Yes" class="btn btn-outline-info btn-sm">Cancel</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section scripts {
+	<environment include="Development">
+		<script src="~/js/TestResultDocFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/TestResultDocFile.js" asp-append-version="true"></script>
+	</environment>
+
+}

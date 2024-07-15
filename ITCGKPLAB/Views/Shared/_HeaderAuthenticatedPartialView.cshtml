@@ -1,0 +1,49 @@
+﻿@using Microsoft.Extensions.Configuration;
+@inject IConfiguration _configuration;
+@inject IAccountRepository _iaccountrepository;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<NewMsgConfigModel> newmsgoption
+@inject ISettingRepository repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	CompanyDetailViewModel companyDetail = await repository.GetCompanyById((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+	DateTime date1 = Convert.ToDateTime(companyDetail.ValidedDate);
+	int totaldays = (int)(date1 - DateTime.Now.Date).Days;
+	if (totaldays <= 0 && !User.IsInRole("SuperAdmin"))
+	{
+		await _iaccountrepository.SignOutAsync();
+	} 
+}
+	<nav class="navbar navbar-dark navbar-expand-sm bg-success fixed-top navbar-custom ">
+		<a class="navbar-brand" asp-action="Index" asp-controller="Home" style="margin-top:-15px;width:auto;">
+			<img src="~/images/Home.png" class="logo" alt="logo" asp-append-version="true" />
+			@_configuration["AppName"]
+		</a>
+		<span class="text-white">
+			<marquee behavior="scroll" style="height:20px;margin-top:-15px;font-size:15px;color:white;">
+				@(companyDetail.CompName.ToUpper() + "  " + companyDetail.Address1 + "  " + "Valid Date " + companyDetail.UptoDate )
+			</marquee>
+		</span>
+		@if (totaldays <= 7 && !User.IsInRole("SuperAdmin"))
+		{
+			//&& !User.IsInRole("SuperAdmin")
+			<div class="text-white">
+				<P class="blink_me text-center pl-3 pt-3">Your Login will Expiry in @totaldays Days </P>
+			</div>
+		}
+		@if (totaldays <= 0 && !User.IsInRole("SuperAdmin"))
+		{
+			var useriddd = await _iaccountrepository.EditUserLockAsync((await userManager.GetUserAsync(User)).Id);
+
+		}
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse d-sm-inline-flex flex-sm-row-reverse smal" id="navbarSupportedContent">
+
+			<form method="post" asp-action="Logout" asp-controller="Account">
+				<button type="submit" class="nav-link btn btn-link py-0 text-white small" style="width:auto;">
+					Logout @User.Identity.Name
+				</button>
+			</form>
+		</div>
+	</nav>

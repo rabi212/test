@@ -1,0 +1,181 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId > 0 ? Model.CompId : 1);
+	List<PatientViewModel> patientList = new List<PatientViewModel>();
+	patientList = await _iMasterRepository.GetPatientDateWise(Model.CompId,Model.UserCode,"0",Model.AgentAcCode,0,Model.FromDate,Model.UptoDate, Model.PaymentMode,Model.DrInLab);
+	var patientDate =  patientList.GroupBy(x => x.AgentAcCode).Select(n => n.Key).ToList();
+	int memberCount = 1; var classColor = "";
+	var paymengrouplist = patientList.GroupBy(x => new { x.PaymentType });
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body >
+	<div class="branchCenter-details">
+		<h3 >@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">Executive  Wise Report</h4>
+	</div>
+
+	<div class="invoice-to">
+		<strong>From Date : @Model.FromDate.ToString("dd/MM/yyyy")</strong><strong>  Upto Date : @Model.UptoDate.ToString("dd/MM/yyyy")</strong>
+	</div>	
+		<table class="table-responsive-sm border fontsizebody">
+			<thead>
+				<tr class="text-left">
+					<th class="wdp-3">S.No.</th>
+					<th class="wdp-4">Date</th>
+					<th class="wdp-7">
+						UID
+					</th>
+					<th class="wdp-3">
+						Ref.No.
+					</th>
+					<th class="wdp-20">
+						Patient's Name
+					</th>
+					<th>
+						Test's Details
+					</th>
+					<th class="wdp-5">
+						Payment
+					</th>
+					<th>
+						Total
+					</th>
+					<th>
+						Dis.Amt.
+					</th>
+					<th>
+						Paid Amt.
+					</th>
+					<th>
+						Bal. Amt.
+					</th>
+					<th>
+						IP Amt.
+					</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var itemn in patientDate)
+				{
+					AgentFileViewModel agentdetails = await _iMasterRepository.GetAgentById(itemn);
+					<tr>
+						<td colspan="12">
+							<strong>Executive's Name : </strong> @agentdetails.Name  @agentdetails.Address1  @agentdetails.MobileNo
+						</td>
+					</tr>
+					memberCount = 1;
+					foreach (var itemx in patientList.Where(x => x.AgentAcCode == itemn))
+					{
+						classColor = itemx.ReportCancel == "True" ? "background-color:lightyellow;" : "background-color:white;";
+
+						string testdetils = null;
+						List<PatientDetailsMasterViewModel> testlist = await _iMasterRepository.GetPatientDetailsById(itemx.Id);
+						foreach (var item in testlist)
+						{
+
+							testdetils = testdetils != null ? testdetils + "," + item.TestMasterViewModels.TestCode : item.TestMasterViewModels.TestCode;
+						}
+						<tr style="@classColor">
+							<td class="bodyLeftPadding">@memberCount</td>
+							<td>
+								@itemx.SDate
+							</td>
+							<td>
+								@itemx.VNo
+							</td>
+							<td>@itemx.RefNo</td>
+							<td>
+								@itemx.TitleName  @itemx.Name   @(Convert.ToInt32(itemx.Age))   @itemx.AgeType   /  @itemx.Sex
+							</td>
+							<td>
+								@testdetils
+							</td>
+							<td class="wdp-5">
+								@itemx.PaymentType
+							</td>
+							<td class="numeric-cell">
+								@itemx.TotalAmt
+							</td>
+							<td class="numeric-cell">
+								@itemx.DiscAmt
+							</td>
+							<td class="numeric-cell">
+								@itemx.PaidAmt
+							</td>
+							<td class="numeric-cell">
+								@itemx.BalAmt
+							</td>
+							<td class="numeric-cell">
+								@itemx.AgentFileViewModel.IPAmt1
+							</td>
+						</tr>
+						memberCount++;
+					}
+					<tr>
+						<td colspan="7" class="numeric-cell">
+							<strong>Total Amt.</strong>
+						</td>
+						<td class="numeric-cell">
+							<strong>@patientList.Where(x => x.AgentAcCode == itemn).Sum(x => x.TotalAmt)</strong>
+						</td>
+						<td class="numeric-cell">
+							<strong>@patientList.Where(x => x.AgentAcCode == itemn).Sum(x => x.DiscAmt)</strong>
+						</td>
+						<td class="numeric-cell">
+							<strong>@patientList.Where(x => x.AgentAcCode == itemn).Sum(x => x.PaidAmt)</strong>
+						</td>
+						<td class="numeric-cell">
+							<strong>@patientList.Where(x => x.AgentAcCode == itemn).Sum(x => x.BalAmt)</strong>
+						</td>
+						<td class="numeric-cell">
+							<strong>@patientList.Where(x => x.AgentAcCode == itemn).Sum(x => x.AgentFileViewModel.IPAmt1)</strong>
+						</td>
+					</tr>
+				}
+				<tr>
+					<td colspan="7" class="numeric-cell">
+						<strong>Grand Total Amt.</strong><br />
+						<strong>Total Cancel Amt.</strong><br />
+						<strong>Net Amt.</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.TotalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.TotalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.TotalAmt)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.DiscAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.DiscAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.DiscAmt)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.PaidAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.PaidAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.PaidAmt)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.BalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.BalAmt)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.BalAmt)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@patientList.Sum(x => x.AgentFileViewModel.IPAmt1)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.AgentFileViewModel.IPAmt1)</strong><br />
+						<strong>@patientList.Where(x => x.ReportCancel != "True").Sum(x => x.AgentFileViewModel.IPAmt1)</strong>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	  
+</body>
+</html>

@@ -1,0 +1,85 @@
+﻿@model TransferTestViewModel
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	ViewData["Title"] = "Delete Patient Record Branch Wise";
+}
+
+<div class="CustomBorderRelative mt-4">
+	<div class="CustomerNewUser">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Delete Patient Record Branch Wise</h3>
+		<form asp-action="CreateDeletePatientRecord" asp-controller="Master" method="post">
+			<div class="form-row">
+				<div class="col-sm-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-sm-12">
+					<div class="form-group row">
+						<label asp-for="FromCompId" class="control-label col-sm-3"></label>
+						<div class="col-sm-9">
+							<select asp-for="FromCompId" asp-items="(await _repository.GetAllCompany(0)).OrderBy(x=> x.CompName).Select(x=> new SelectListItem() { Text = x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="UptoDate" class="col-form-label col-form-label-sm col-sm-3"></label>
+						<div class="col-sm-9">
+							<input type="date" asp-for="UptoDate" class="form-control form-control-sm " />
+						</div>
+					</div>							
+				</div>
+				<div class="col-sm-12">
+					<div class="form-group row-cols-12">
+						<div class="col-sm-12 text-sm-right">
+							<input type="submit" value="Delete Record" class="btn btn-success  btn-sm" style="width:auto;" />
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$(document).ready(function () {
+			$('#TestId').hide();
+			$('#TestIdLabel').hide();
+
+			$('#UpdateRecordLable').text("Transfer Test");
+			var message = ""; var chvalue = 0;
+			$("#UpdateRecord").on('change', function () {
+				if ($(this).is(':checked')) {
+					$(this).attr('value', 'true');
+					message = "Update Test";
+					chvalue = 0
+				} else {
+					$(this).attr('value', 'false');
+					message = "Transfer Test";
+					chvalue = 1;
+				}
+				$('#UpdateRecordLable').text(message);
+
+				if (chvalue == 0) {
+					$('#TestId').show();
+					$('#TestIdLabel').show();
+				}
+				else {
+					$('#TestId').hide();
+					$('#TestIdLabel').hide();
+				}
+			});
+		})
+	</script>
+}

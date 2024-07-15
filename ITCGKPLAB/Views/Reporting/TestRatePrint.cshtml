@@ -1,0 +1,116 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId > 0 ?  Model.CompId : 1);
+	List<TestMasterViewModel> patientList = await _iMasterRepository.GetAllTestMasterGroup(Model.CompId);
+	var patientDate =  patientList.GroupBy(x => x.TestGroupId).Select(n => n.Key).ToList();
+	int memberCount = 1;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="branchCenter-details">
+		<h3>@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">Test Rate List</h4>
+	</div>
+	<table class="table-responsive-sm border fontsizebody">
+		<thead>
+			<tr>
+				<th class="wdp-28">
+					Test
+				</th>
+				<th class="wdp-5">
+					Rate
+				</th>
+				<th class="wdp-28">
+					Test
+				</th>
+				<th class="wdp-5">
+					Rate
+				</th>
+				<th class="wdp-29">
+					Test
+				</th>
+				<th class="wdp-5">
+					Rate
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var itemn in patientDate)
+			{
+				TestGroupMasterViewModel agentdetails = await _iMasterRepository.GetTestGroupMasterById(Convert.ToInt32(itemn));
+				<tr>
+					<td colspan="6">
+						<strong>Test Group's Name :  @agentdetails.Name  (@agentdetails.ShortName)</strong>
+					</td>
+				</tr>
+				int PageNo = 1;
+				double TotalRows = (double)((decimal)patientList.Where(x => x.TestGroupId == itemn).Count() / Convert.ToDecimal(3));
+				int TotalPageNo = (int)Math.Ceiling(TotalRows);
+				var xxx = patientList.OrderBy(x => x.TestCode).Where(x => x.TestGroupId == itemn);
+				
+				@for (int i = 0; i < TotalPageNo; i++)
+				{
+					//PageNo = PageNo == 1 || PageNo == 0 ? 1 : PageNo > TotalPageNo ? TotalPageNo : PageNo++;
+					PageNo++;
+					var nn = xxx.Skip((PageNo - 1) * 3).Take(3);
+					memberCount = 1;
+					var testcode1 = ""; var testcode2 = ""; var testcode3 = "";
+					decimal rate1 = 0; decimal rate2 = 0; decimal rate3 = 0;
+						@foreach (var itemx in nn)
+						{
+							if (memberCount == 1)
+							{
+								testcode1 = itemx.TestCode;rate1 = itemx.Rate;
+							}
+							else
+							{
+								if (memberCount == 2)
+								{
+									testcode2 = itemx.TestCode; rate2 = itemx.Rate;
+								}
+								else 
+								{
+									testcode3 = itemx.TestCode; rate3 = itemx.Rate;
+									memberCount = 0;
+								}
+							}
+								memberCount++;
+						}
+							<tr>
+								<td>
+									@testcode1
+								</td>
+								<td class="numeric-cell">
+									<strong>@rate1</strong>
+								</td>
+								<td>
+									@testcode2
+								</td>
+								<td class="numeric-cell">
+									<strong>@rate2</strong>
+								</td>
+								<td>
+									@testcode3
+								</td>
+								<td class="numeric-cell">
+									<strong>@rate3</strong>
+								</td>
+							</tr>
+				}
+			}
+
+
+		</tbody>
+	</table>
+</body>
+</html>

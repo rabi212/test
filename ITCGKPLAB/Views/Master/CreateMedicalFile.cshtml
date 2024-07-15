@@ -1,0 +1,232 @@
+﻿@model MedTestViewModel
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Medical Report File";
+	string submitValue = "Save";
+	var Currentuser = await userManager.GetUserAsync(User);
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+	var photopath = "~/MedicalImage/" + (Model.ExitPhotoPath ?? "question.jpg");
+	PatientViewModel patientViewModel = await _mrepository.GetPatientMasterById((int)Model.PtId);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h6 class="text-center text-white HeadingColorRed">Medical Report</h6>
+		<form asp-action="CreateMedicalFile" asp-controller="Master" method="post" id="purchaserecordform" autocomplete="off" enctype="multipart/form-data">
+
+			<input asp-for="Id" class="form-control" hidden />
+			<input asp-for="PtId" class="form-control" hidden />
+			<input asp-for="RptDate" class="form-control" hidden />
+			<input asp-for="CompId" class="form-control " value="@((int)(await userManager.GetUserAsync(User)).CompanyDetailId)" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-8">
+					<label> <b> Ref.No. :- @patientViewModel.RefNo UID @patientViewModel.VNo</b></label><span>
+						<label>Dt :- @patientViewModel.SDate</label>
+						<label>Name :- @patientViewModel.Name @(Convert.ToInt32(patientViewModel.Age))  @patientViewModel.AgeType  </label>
+						<label>Sex :- @patientViewModel.Sex</label>
+					</span>
+				</div>
+				<div class="col-4">
+					<div class="form-group row">
+						<label asp-for="Photo" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<div class="custom-file">
+								<input asp-for="Photo" class="form-control  custom-file-input" accept="image/jpeg, image/jpg, image/png, image/bmp" onchange="LoadImage(this,document.getElementById('user_img'))" />
+								<label class="custom-file-label">Choose File------</label>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-5 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="PatHeight" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="PatHeight" class="form-control  " />
+						</div>
+						<label asp-for="PatWeight" class="col-12 col-sm-12 col-md-4 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="PatWeight" class="form-control  " />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PatientMarried" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<select asp-for="PatientMarried" asp-items="Html.GetEnumSelectList<PatientMarriedType>()" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+						<label asp-for="PatientReligion" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<select asp-for="PatientReligion" asp-items="Html.GetEnumSelectList<PatientReligionType>()" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PassportNo" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="PassportNo" class="form-control  CustomText " />
+						</div>
+						<label asp-for="DateOfIssue" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="DateOfIssue" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Nationality" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="Nationality" class="form-control  CustomText" />
+						</div>
+						<label asp-for="DateOfBirth" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="DateOfBirth" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PlaceIssue" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="PlaceIssue" class="form-control  CustomText" />
+						</div>
+						<label asp-for="RecrutingAgency" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="RecrutingAgency" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ExamDate" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="ExamDate" class="form-control  CustomText" />
+						</div>
+						<label asp-for="ExpiryDate" class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-3 col-xl-3">
+							<input asp-for="ExpiryDate" class="form-control  CustomText" />
+						</div>
+					</div>					
+				</div>
+				<div class="col-12 col-sm-12 col-md-5 col-lg-4 col-xl-4">
+					<div class="form-group row">
+						<label asp-for="Trade" class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-8 col-xl-8">
+							<input asp-for="Trade" class="form-control " />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="VisaNoDate" class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-8 col-xl-8">
+							<input asp-for="VisaNoDate" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="AllergyIssue" class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-8 col-xl-8">
+							<input asp-for="AllergyIssue" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="OtherIssue" class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-8 col-xl-8">
+							<input asp-for="OtherIssue" class="form-control  CustomText" />
+						</div>
+					</div>
+
+					<div class="form-group row">
+						<label asp-for="MedPatientType" class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-8 col-xl-8">
+							<select asp-for="MedPatientType" asp-items="Html.GetEnumSelectList<PatientFitType>()" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="MedRemarks" class="col-12 col-sm-12 col-md-6 col-lg-4 col-xl-4 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-8 col-xl-8">
+							<input asp-for="MedRemarks" class="form-control  CustomText" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					<div class="form-group row" hidden>
+						<label asp-for="ExitPhotoPath" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<input asp-for="ExitPhotoPath" class="form-control " />
+						</div>
+					</div>
+					<div class="form-group row offset-2">
+						@*<img src="@photopath" class="imgThumbnail" asp-append-version="true" />*@
+						<div>
+							<img id="user_img" src="@photopath" style="width:160px;height:130px; border:solid; margin-top:5px;" asp-append-version="true" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="stateScroll boxcolorback" id="OpenItemTable1">
+						<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="OpenItemTableWidth">
+							<thead class="RedDarkWhiteListHeader small">
+								<tr>
+									<th class="wdp-4">SrNo.</th>
+									<th class="wdp-20">Medical Test</th>
+									<th class="text-sm-right wdp-12">Result</th>
+									<th class="text-sm-right wdp-12">Range</th>
+									<th class="wdp-20">Laboratory Test</th>
+									<th class="text-sm-right wdp-12">Result</th>
+									<th class="text-sm-right wdp-12">Range</th>
+								</tr>
+							</thead>
+							<tbody id="orderItemContinaer">
+								@Html.EditorFor(model => model.MedTestDetailViewModels)
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row ">
+							
+						<div class="col-12 text-right ">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+							<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							@if (Model.Id > 0)
+							{
+								<a asp-action="PatientMedReportPrint" asp-controller="Reporting" class="btn btn-sm btn-outline-primary" asp-route-id="@Model.Id" target="_blank">Print</a>
+							}
+							else
+							{
+								<a asp-action="PatientMedReportPrint" asp-controller="Reporting" class="btn btn-sm btn-outline-primary disabled " asp-route-id="@Model.Id" target="_blank">Print</a>
+							}
+							<a asp-action="CreateRegistrationFile" asp-controller="Master" asp-route-id="@Model.PtId" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {	
+	<script>
+		$(document).ready(function () {
+			$('#RptDate').val(CurrentDateTime());
+			$('.custom-file-input').on("change", function () {
+				var filename = $(this).val().split("\\").pop();
+				$(this).next('.custom-file-label').html(filename);
+			});
+		});
+		$('#OpenItemTable1').height(screen.height - 520);
+		$('#OpenItemTableWidth').width(screen.width -100);
+	</script>
+}

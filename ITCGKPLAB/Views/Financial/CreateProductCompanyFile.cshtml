@@ -1,0 +1,152 @@
+﻿@model ProductCompanyViewModel
+@inject IFinancialRepository _repository;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Create Product Company File";
+	List<ProductCompanyViewModel> stateViewModels = await _repository.GetAllProductCompany();
+	string submitValue = Model.ProdId > 0 ? "Update" : "Save";
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomerGrade">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Product Company File</h3>
+		<form asp-action="CreateProductCompanyFile" asp-controller="Financial" method="post" autocomplete="off">
+			<input asp-for="ProdId" class="form-control" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="ProdCode" class="control-label col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"><input asp-for="ProdCode" class="form-control " /></div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ProdName" class="control-label col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9"><input asp-for="ProdName" class="form-control  CustomText" /></div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+								<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="CreateProductCompanyFile" asp-controller="Financial" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+				<input id="NameX" class="form-control " placeholder="Search Product Company Name" onkeypress="SearchPackingFile()" />
+			</div>
+		</form>
+		<div class="stateScroll" id="ProductCompanyFileTable">
+			<table class="table  table-striped table-bordered table-hover table-responsive-sm  Vouch">
+				<thead class="bluevioletWhiteListHeader">
+					<tr>
+						<th class="wdp-5">
+							Id
+						</th>
+						<th class="wdp-5">
+							Code
+						</th>
+						<th>
+							Name
+						</th>
+						<th class="actionListButtonWidthGrade">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody class="tbodyprodcompfile">
+					@if (stateViewModels.Count() > 0)
+					{
+						@foreach (var item in stateViewModels)
+						{
+							<tr >
+								<td>
+									@item.ProdId
+								</td>
+								<td>
+									@item.ProdCode
+								</td>
+								<td>
+									@item.ProdName
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditProductCompanyPolicy")).Succeeded)
+									{
+										<a asp-action="CreateProductCompanyFile" asp-controller="Financial" asp-route-id=@item.ProdId><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteProductCompanyPolicy")).Succeeded)
+									{
+										<a asp-action="DeleteProductCompanyRecord" asp-controller="Financial" asp-route-id=@item.ProdId onclick="return confirm ('Are you sure you want to delete record : @item.ProdId')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+									</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="4">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section Scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<script>
+		$(document).ready(function () {
+			$('#ProdName').focus();
+		});
+		$('#ProductCompanyFileTable').height(screen.height - 390);
+		function SearchPackingFile() {
+			var empobj = {
+				NameX: $('#NameX').val()
+			}
+			$.ajax({
+				url: "/Financial/ProductCompanyDetailSearchRecord/",
+				method: "GET",
+				dataType: "json",
+				data: empobj,
+				contentType: "application/json",
+				success: function (result) {
+					var html = '';
+					$.each(result, function (key, item) {
+						html += '<tr class="small">';
+						html += '<td class="wdp-5" >' + item.prodId + '</td>';
+						html += '<td class="wdp-5">' + item.prodCode + '</td>';
+						html += '<td>' + item.prodName + '</td>';
+						html += '<td class="text-center">' +
+							'<a href="Product-Company-File?id=' + item.prodId + '"' + '<span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>' +
+							'</td >';
+						html += '</tr>';
+					});
+					$('.tbodyprodcompfile').html(html);
+					// '<a href="AddressBook-Delete-File?id=' + item.ledgerMasterId + '"' +  '<span><i class="fas fa-times fa-2x icon-color-red"></i></span></a>' +
+				},
+				error: function (errormessage) {
+					console.error(errormessage.responseText);
+				}
+			});
+			return false;
+		}
+	</script>
+}

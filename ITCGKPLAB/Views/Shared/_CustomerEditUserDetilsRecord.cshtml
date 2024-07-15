@@ -1,0 +1,76 @@
+﻿@model IEnumerable<PatientAuditViewModel>
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+<table class="table">
+	<thead>
+		<tr>
+			<th hidden>
+				Id
+			</th>
+			<th class="wdp-5">
+				User
+			</th>
+			<th class="wdp-5">
+				Date
+			</th>
+			<th class="wdp-10">
+				Modify
+			</th>			
+			<th>
+				Ref.
+			</th>
+			<th class="wdp-18">
+				Name
+			</th>
+			<th>
+				Pre-Information
+			</th>
+			<th>
+				Post-Information
+			</th>
+			<th>
+				Edit
+			</th>
+			<th class="wdp-8">
+				Type
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr class="small fullpaidColor" style="color:blue;">
+				<td hidden>
+					@item.Id
+					@item.CompId
+				</td>
+				<td class="wdp-5">
+					@userManager.Users.Where(x => x.Id == item.UserCode).Select(x => x.UserName.Substring(0, 8).ToUpper()).FirstOrDefault()
+				</td>
+				<td class="wdp-5">
+					@item.SDate
+				</td>
+				<td class="wdp-5">
+					@(Convert.ToDateTime(item.ModifDate).ToString("dd/MM/yyyy hh:mm tt"))
+				</td>
+				<td class="wdp-4">
+					@item.RefNo
+				</td>
+				<td class="wdp-12">
+					@item.PatientInformation
+				</td>
+				<td>
+					@item.PaidPreInformation
+				</td>
+				<td>
+					@item.PaidPostInformation
+				</td>
+				<td>
+					@userManager.Users.Where(x => x.Id == item.EditUserCode).Select(x => x.UserName.Substring(0, 8).ToUpper()).FirstOrDefault()
+				</td>
+				<td class="wdp-8">
+					@item.UpdateType
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

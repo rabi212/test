@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    * {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+  	img {
+  		margin-right: 5px;
+  		width: 100%;
+  	}
+    footer {
+      border-top: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+  	div.relative {
+  		position: relative;
+  		width: 100%;
+  	}
+
+  	div.absolute1 {
+  		position: absolute;
+  		left: 0;
+  		width: 20%;
+  	}
+
+  	div.absolute2 {
+  		position: absolute;
+  		left: 30%;
+  		width: 20%;
+  	}
+
+  	div.absolute3 {
+  		position: absolute;
+  		right: 0;
+  		width: 20%;
+  	}
+  </style>
+</head>
+
+<body onload="subst()">
+    <footer>
+        <div class="relative">
+            <div class="absolute1"><img src="/CenterSignatureLeft/0a277d9a-0a86-4983-b6dd-6cba28e3b043_SignatureLeft.jpg" height="55"></div>
+            <div class="absolute2"><img src="/CenterSignature/9d194c3f-4a71-4cd7-98f6-c077a7136cfe_SignatureCenter.jpg" height="55"></div>
+            <div class="absolute3"><img src="/CenterLogo/44a93a3d-3f8d-4024-b18d-4558c4415248_SignatureRight.jpeg" height="55"></div>
+        </div>
+
+		<div class="relative" style="top:60px;">
+			<img src="/CenterFooter/Footer1_Footer.jpeg" height="55">
+			<!--Page <span class="page"></span> of <span class="topage"></span>-->
+		</div>
+    </footer>
+  <script>
+    //As documented here https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
+    function subst() {
+      var vars = {};
+      var query_strings_from_url = document.location.search.substring(1).split('&');
+      for (var query_string in query_strings_from_url) {
+        if (query_strings_from_url.hasOwnProperty(query_string)) {
+          var temp_var = query_strings_from_url[query_string].split('=', 2);
+          vars[temp_var[0]] = decodeURI(temp_var[1]);
+        }
+      }
+      var css_selector_classes = ['page', 'frompage', 'topage', 'webpage', 'section', 'subsection', 'date', 'isodate', 'time', 'title', 'doctitle', 'sitepage', 'sitepages'];
+      for (var css_class in css_selector_classes) {
+        if (css_selector_classes.hasOwnProperty(css_class)) {
+          var element = document.getElementsByClassName(css_selector_classes[css_class]);
+          for (var j = 0; j < element.length; ++j) {
+            element[j].textContent = vars[css_selector_classes[css_class]];
+          }
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>

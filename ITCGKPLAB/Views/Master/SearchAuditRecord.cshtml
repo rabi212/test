@@ -1,0 +1,221 @@
+﻿@model OpenSearchViewModel
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.AspNetCore.Identity.SignInManager<ApplicationUser> signInManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{	
+	ViewData["Title"] = "Search Audit File";
+	var softwareheader = softwareoption.Value;
+	string userid = signInManager.IsSignedIn(User) ? ((await userManager.GetUserAsync(User)).Id) : "";
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById(User.Identity.IsAuthenticated ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1);
+	List<PatientAuditViewModel> detailViewModelsx = await _mrepository.SearchPatientAuditDateWise(Model.CompId, Model.UserId,Model.FromDate, Model.UptoDate);
+}
+
+	<div class="CustomBorderRelative pt-1">
+		<div class="CustomBorder1">
+
+			<form asp-action="SearchAuditRecord" asp-controller="Master" method="post" autocomplete="off" id="AuditSearchFileRecord">
+				@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+				<div class="form-row">
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+						<div class="form-group row">
+							<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+								@if (!softwareheader.SoftwareMode)
+								{
+									@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+											<option value="0">ALL</option>
+										</select>
+									}
+									else
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										</select>
+									}
+								}
+								else
+								{
+
+									@if (User.IsInRole("SuperAdmin"))
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+											<option value="0">ALL</option>
+										</select>
+									}
+									else
+									{
+										<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										</select>
+									}
+								}
+							</div>
+							<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="UserId" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+									{
+										<select asp-for="UserId" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == Model.CompId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+											<option value="0">ALL</option>
+										</select>
+									}
+									else
+									{
+										<select asp-for="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+										</select>
+									}
+								}
+							</div>
+							<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+								<input asp-for="FromDate" class="form-control form-control-sm" title="From Date" />
+							</div>
+							<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+								<input asp-for="UptoDate" class="form-control form-control-sm" title="Upto Date" />
+							</div>	
+							<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+								<div class="input-group">
+									<input type="checkbox" asp-for="ZeroBal" class="form-control form-control-sm" onclick="checkValuesALL();"/>
+									<span>Select ALL Record</span>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 text-right">
+								<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />
+								<a asp-action="Index" asp-controller="Home" class="btn btn-warning btn-sm" style="width:auto;">Cancel</a>
+								<input id="Delbutton" type="button" onclick="DeleteALLRegistrationPatientRecord();" value="Delete" class="btn btn-danger btn-sm" style="width:auto;" />
+							</div>
+						</div>						
+					</div>
+				</div>				
+			</form>			
+			<div class="stateScroll" id="DoctorTable1">
+				<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm Vouch">
+					<thead class="bluevioletWhiteListHeader small">
+						<tr>
+							<th hidden>
+								Id
+							</th>
+							<th class="wdp-5">
+								User
+							</th>
+							<th class="wdp-3">
+								Select
+							</th>
+							<th class="wdp-5">
+								Date
+							</th>
+							<th class="wdp-10">
+								Modify
+							</th>
+							<th class="wdp-5">
+								UID
+							</th>
+							<th class="wdp-4">
+								Ref. No.
+							</th>
+							<th class="wdp-18">
+								Name
+							</th>
+							<th>
+								Pre-Information
+							</th>
+							<th>
+								Post-Information
+							</th>
+							<th>
+								Edit
+							</th>
+							<th class="wdp-8">
+								Type
+							</th>
+						</tr>
+					</thead>
+					<tbody class="tbodyPatientRecord">
+						@if (detailViewModelsx.Count() > 0)
+						{
+							@foreach (var item in detailViewModelsx)
+							{								 
+								<tr class="small fullpaidColor" style="color:blue;">
+									<td hidden>
+										@item.Id
+										@item.CompId
+									</td>
+									<td class="wdp-5">
+										@userManager.Users.Where(x => x.Id == item.UserCode).Select(x => x.UserName.Substring(0, 8).ToUpper()).FirstOrDefault()
+									</td>
+									<td class="wdp-3">
+										<div class="input-group pt-1">
+											<input type="checkbox" class="form-control form-control-sm wdp-3" style="height:15px;" id="Item_Status_@item.Id" name="Item_Status_@item.Id" checked="@item.SelectDeleted" onclick="checkValues(@item.Id);" />
+										</div>
+									</td>
+									<td class="wdp-5">
+										@item.SDate
+									</td>
+									<td class="wdp-5">
+										@(Convert.ToDateTime(item.ModifDate).ToString("dd/MM/yyyy hh:mm tt"))
+									</td>
+									<td class="wdp-5">
+										@item.VNo
+									</td>
+									<td class="wdp-4">
+										@item.RefNo
+									</td>
+									<td class="wdp-12">
+										@item.PatientInformation
+									</td>
+									<td>
+										@item.PaidPreInformation
+									</td>
+									<td>
+										@item.PaidPostInformation
+									</td>
+									<td>
+										@userManager.Users.Where(x => x.Id == item.EditUserCode).Select(x => x.UserName.Substring(0, 8).ToUpper()).FirstOrDefault()
+									</td>
+									<td class="wdp-8">
+										@item.UpdateType
+									</td>									
+								</tr>
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="14">
+									<h3 class="text-danger text-center">No Record found......</h3>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 bg-white">
+				<div class="form-group row text-right">
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+						<h5 class="text-danger">Total Record :- @detailViewModelsx.Count()</h5>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+@section scripts{
+	<environment include="Development">
+		<script src="~/js/SearchAuditFind.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/SearchAuditFind.min.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#DoctorTable1').height(screen.height - 240);
+			//$('#TestReportTable1').height(screen.height - 520);
+	</script>	
+
+}

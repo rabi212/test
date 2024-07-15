@@ -1,0 +1,84 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId > 0 ? Model.CompId : 1);
+	List<PatientViewModel> patientList = new List<PatientViewModel>();
+	patientList = await _iMasterRepository.GetPatientDateTestWise(Model.CompId,Model.UserCode,Model.FromDate,Model.UptoDate);
+	int memberCount = 1;
+	List<PatientDetailsMasterViewModel> testSubMasterList = new List<PatientDetailsMasterViewModel>();
+	foreach (var item in patientList)
+	{
+		List<PatientDetailsMasterViewModel> patientDetailsMasterViewModel = await _iMasterRepository.GetPatientDateTestGroup(item.Id, Model.TestGroupId, 0);
+		testSubMasterList.AddRange(patientDetailsMasterViewModel.Where(x => x.TestId > 0));
+	}
+	var testGroupList = testSubMasterList.GroupBy(x => x.TestId).Select(n => n.Key).ToList();	
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body >
+	<div class="branchCenter-details">
+		<h3>@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">Test Wise Report</h4>
+	</div>
+
+	<div class="invoice-to">
+		<strong>From Date : @Model.FromDate.ToString("dd/MM/yyyy")</strong><strong>  Upto Date : @Model.UptoDate.ToString("dd/MM/yyyy")</strong>
+	</div>	
+		<table class="table-responsive-sm border fontsizebody">
+			<thead>
+				<tr class="text-left">
+					<th>S.No.</th>
+					<th>
+						Test's Name
+					</th>										
+					<th>
+						Total Amt.
+					</th>
+					<th>
+						No of Case
+					</th>					
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var itemn in testGroupList)
+				{
+					TestMasterViewModel testMasterViewModels = await _iMasterRepository.GetTestMasterById(itemn);
+						<tr>
+							<td class="bodyLeftPadding">@memberCount</td>							
+							<td>
+								@testMasterViewModels.TestCode
+							</td>							
+							<td class="numeric-cell">
+								@testSubMasterList.Where(x => x.TestId == itemn).Sum(x => x.Rate)
+							</td>
+							<td class="numeric-cell">
+								@testSubMasterList.Where(x => x.TestId == itemn).Count()
+							</td>
+						</tr>
+						memberCount++;
+					
+				}
+				<tr>
+					<td colspan="2" class="numeric-cell">
+						<strong>Total Amt.</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@testSubMasterList.Sum(x => x.Rate)</strong>
+					</td>
+					<td class="numeric-cell">
+						<strong>@testSubMasterList.Count()</strong>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	  
+</body>
+</html>

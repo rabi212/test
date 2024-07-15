@@ -1,0 +1,93 @@
+﻿@model IEnumerable<UpdatePayBillViewModel>
+@inject IPayBillRepository _repository;
+@inject ISettingRepository _srepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel MainBranch = await _srepository.GetCompanyById(((int)(await userManager.GetUserAsync(User)).CompanyDetailId));
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	@foreach (var item in Model)
+	{
+		<div class="branchCenter-details">
+			<h3 class="text-center">Pay Slip</h3>
+		</div>
+		<table class="table-responsive-sm border fontsizebody">
+			<thead class="branchCenter-details">
+				<tr>
+					<td colspan="12" class="text-center">
+						<h3 class="">@MainBranch.CompName</h3><br />
+						<p>@MainBranch.Address1  @MainBranch.Address2</p>
+						<p>Mob.No. @MainBranch.MobileNo   Ph.No. @MainBranch.PhoneNo  </p>
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+
+				<tr>
+					<td colspan="8">
+						<b>Exeuctive Name : @((int)item.EmpId) - @item.AgentFileViewModel.Code - @item.AgentFileViewModel.Name</b>
+					</td>
+					<td colspan="4" class="numeric-cell">
+						<b> Month : @item.VDate Basic Pay : @item.BasicPay</b>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" class="text-right wdp-15">
+						Days :<br />
+						New Basic : <br />
+						TA : <br />
+						DA : <br />
+						HRA :<br />
+					</td>
+					<td colspan="2" class="text-right wdp-15">
+						@((int)item.AttendDays)<br />
+						@(item.NewBasicPay)<br />
+						@(item.TA)<br />
+						@(item.DA)<br />
+						@(item.HRA)<br />
+					</td>
+					<td colspan="2" class="text-right wdp-15">
+						CCA : <br />
+						BONUS :<br />
+						I.P. : <br />
+						Remarks :<br />
+						E.P.F. : <br />
+					</td>
+					<td colspan="2" class="text-right wdp-15">
+						@(item.CCA)<br />
+						@(item.BonusAmt)<br />
+						@(item.IPAmt)<br />
+						@item.Remarks<br />
+						@item.EFP<br />
+					</td>
+					<td colspan="2" class="text-right wdp-20">
+						Advance :<br />
+						Remarks :<br />
+						LIC :<br />
+						<b>Total Pay :</b><br />
+						<b>Deducation :</b><br />
+						<b>Net Pay : </b>
+					</td>
+					<td colspan="2" class="text-right wdp-20">
+						@item.AdvAmt<br />
+						@item.AdvRemarks	<br />
+						@item.LIC<br />
+						<b>@item.TotalPay</b><br />
+						<b>@item.TotalDedPay</b><br />
+						<b>@item.NetPay</b>
+					</td>
+				</tr>
+			</tbody>
+		</table><br /><br />
+	}
+</body>
+</html>
+

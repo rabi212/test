@@ -1,0 +1,70 @@
+﻿@model OpenSearchViewModel
+@inject ISettingRepository _repository
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{
+	ViewData["Title"] = "Patient Due Collection";
+	var softwareheader = softwareoption.Value;
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+}
+<div class="CustomBorderRelative mt-1">
+	<div class="CustomerNewUser">
+		<h3 class="text-center text-white HeadingColorRed">Due Collection Print</h3>
+		<form asp-action="PatientDueCollection" asp-controller="Master" method="post" autocomplete="off">
+			<div class="form-row">
+
+				@*<input asp-for="UserCode" class="form-control  CustomText" value="@((await userManager.GetUserAsync(User)).Id)"  hidden/>*@
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">					
+					<div class="form-group row">
+						<label asp-for="UserId" class="col-form-label  col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 "></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="UserId" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+									<option value="ALL">ALL</option>
+								</select>
+							}
+							else
+							{
+								if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+								{
+									<select asp-for="UserId" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == Model.CompId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+										<option value="ALL">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+									</select>
+								}
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<select asp-for="PaymentMode" asp-items="Html.GetEnumSelectList<PayMode>()" class="form-control  selectedItems" title="Payment Type">
+								<option value="ALL">ALL</option>
+							</select>
+						</div>
+					</div>				
+					<div class="form-group row">
+						<label asp-for="FromDate" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input type="date" asp-for="FromDate" class="form-control  CustomText" />
+						</div>
+						<label asp-for="UptoDate" class="col-12 col-sm-12 col-md-2 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-4 col-lg-3 col-xl-3">
+							<input type="date" asp-for="UptoDate" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<button type="submit" class="btn btn-success btn-sm" formtarget="_blank">Print</button>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

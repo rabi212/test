@@ -1,0 +1,244 @@
+﻿@model ItemMasterViewModel
+@inject IFinancialRepository _mrepository;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Create Item File";
+	List<ItemMasterViewModel> detailViewModels = await _mrepository.GetALLItemMaster();
+	string submitValue = Convert.ToInt32(Model.ItemId) > 0 ? "Update" : "Save";
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h4 class="text-center text-white HeadingColorRed">Item Master Files</h4>
+		<form asp-action="CreateItemFile" asp-controller="Financial" method="post" autocomplete="off">
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<input asp-for="ItemId" class="form-control  CustomText" hidden />
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="ItemName" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="ItemCode" class="form-control " />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+							<input asp-for="ItemName" class="form-control  " />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ItGPCode" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<select asp-for="ItGPCode" asp-items=" (await _mrepository.GetAllItemGroup()).OrderBy(x=> x.ItemGroupName).Select(x=> new SelectListItem() { Text = x.ItemGroupName, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems" onblur="GetHSNCode();">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="IHSNCode" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="IHSNCode" class="form-control  CustomText" />
+						</div>
+						<label asp-for="ReversCharge" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="ReversCharge" asp-items="Html.GetEnumSelectList<ReverseCharged>()" class="form-control  CustomText ">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ProdId" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<select asp-for="ProdId" asp-items=" (await _mrepository.GetAllProductCompany()).OrderBy(x=> x.ProdName).Select(x=> new SelectListItem() { Text = x.ProdName, Value = x.ProdId.ToString() })" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="UnitId" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<select asp-for="UnitId" asp-items=" (await _mrepository.GetAllProductMeasurement()).OrderBy(x=> x.UnitName).Select(x=> new SelectListItem() { Text = x.UnitName, Value = x.Id.ToString() })" class="form-control  selectedItems">
+							</select>
+						</div>
+						<label asp-for="PackId" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<select asp-for="PackId" asp-items=" (await _mrepository.GetALLPackingMaster()).OrderBy(x=> x.PackName).Select(x=> new SelectListItem() { Text = x.PackName, Value = x.PackId.ToString() })" class="form-control  selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DiscPer" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="DiscPer" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="GSTPer" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel text-right"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="GSTPer" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="CessPer" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="CessPer" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ShowStock" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label   CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="ShowStock" asp-items="Html.GetEnumSelectList<StockTransfer>()" class="form-control  CustomText ">
+							</select>
+						</div>
+						<label asp-for="UnitCase" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  text-right CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="UnitCase" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="ProfitPer" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="ProfitPer" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 CustLabel">
+				<div class="form-group row">
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+						<input type="submit" value="@submitValue" class="btn btn-sm btn-success" id="submit" hidden />
+						<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+						<a asp-action="CreateItemFile" asp-controller="Financial" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-sm btn-warning" style="width:auto;">Add New</a>
+						<a asp-action="Index" asp-controller="Home" class="btn btn-sm btn-outline-info">Cancel</a>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 anyLine">
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+					<select id="ItemGroupId" asp-items=" (await _mrepository.GetAllItemGroup()).OrderBy(x => x.ItemGroupName).Select(x => new SelectListItem() { Text = x.ItemGroupName, Value = x.Id.ToString() })" class="form-control  selectedItems" onchange="SearchItemFile()" title="Select Item Group's Name">
+						<option value="0">ALL</option>
+					</select>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+					<select id="ProdCodeX" asp-items=" (await _mrepository.GetALLPackingMaster()).OrderBy(x => x.PackName).Select(x => new SelectListItem() { Text = x.PackName, Value = x.PackId.ToString() })" class="form-control  selectedItems" onchange="SearchItemFile()" title="Select Item Packing Name">
+						<option value="0">ALL</option>
+					</select>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+					<input id="NameX" class="form-control " placeholder="Enter Name" onkeypress="SearchItemFile()" />
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+					<input id="ProdCompCordX" class="form-control " placeholder="Enter Company Name" onkeypress="SearchItemFile()" />
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+					<input id="HSNCodeX" class="form-control " placeholder="Enter HSN Code" onkeypress="SearchItemFile()" />
+				</div>
+			</div>
+		</div>
+		<div class="stateScroll" id="ItemTable1">
+			<table class="table table-striped table-bordered table-hover table-responsive-sm PurchaseVouch">
+				<thead class="RedDarkWhiteListHeader small">
+					<tr>
+						<th hidden>
+							Id
+						</th>
+						<th class="wdp-5">
+							Code
+						</th>
+						<th class="wdp-10">
+							HSN Code
+						</th>
+						<th>
+							Name
+						</th>
+						<th class="wdp-10">
+							Group's Name
+						</th>
+						<th class="wdp-20">
+							Company's Name
+						</th>
+						<th class="text-right wdp-5">
+							GST %
+						</th>
+						<th class="text-right wdp-5">
+							Units
+						</th>
+						<th class="actionListButtonWidthAgent">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody class="tbodyItem">
+					@if (detailViewModels.Count() > 0)
+					{
+						@foreach (var item in detailViewModels)
+						{
+							<tr>
+								<td hidden>
+									@item.ItemId
+								</td>
+								<td>
+									@item.ItemCode
+								</td>
+								<td>
+									@item.IHSNCode
+								</td>
+								<td>
+									@item.ItemName
+								</td>
+								<td>
+									@item.ItemGroupViewModel.ItemGroupName
+								</td>
+								<td>
+									@item.ProductCompanyViewModel.ProdName
+								</td>
+								<td class="text-right wdp-5">
+									@item.GSTPer
+								</td>
+								<td class="text-right wdp-5">
+									@item.UnitCase
+								</td>
+								<td class="actionListButtonWidthAgent">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditItemMasterPolicy")).Succeeded)
+									{
+										<a asp-action="CreateItemFile" asp-controller="Financial" asp-route-id=@item.ItemId><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteItemMasterPolicy")).Succeeded)
+									{
+										<a asp-action="DeleteItemRecord" asp-controller="Financial" asp-route-id=@item.ItemId onclick="return confirm ('Are you sure you want to delete record : @item.ItemId')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="6">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/ItemFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/ItemFile.min.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#ItemTable1').height(screen.height - 450);
+	</script>
+}

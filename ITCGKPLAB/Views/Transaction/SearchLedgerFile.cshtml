@@ -1,0 +1,283 @@
+﻿@model OpenSearchViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject ISettingRepository _repository;
+@inject ITransactionRepository _Irepository;
+@inject IFinancialRepository _Frepository;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Search Ledger File";
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	var userdetailsx = userManager.Users.Where(x => x.Id == userid).FirstOrDefault();
+	var userdetailsxx = userManager.Users.Where(x => x.Id == Model.UserId).FirstOrDefault();
+	CompanyDetailViewModel companyDetailViewModels = await _repository.GetCompanyById(Convert.ToInt32(ViewBag.CompId) > 0 ? Convert.ToInt32(ViewBag.CompId) : (int)userdetailsx.CompanyDetailId);
+	List<VoucherViewModel> listItem = await _Irepository.LedgerVoucherDateWise(Model.FromDate, Model.UptoDate, Model.AcId);
+	LedgerMasterViewModel ledgerMasterViewModel = await _Frepository.GetAddressMasterById(Model.AcId);
+	int opnAmt = await _Irepository.LedgerBeforeDateBal(Model.FromDate, Model.AcId);
+	decimal BalAmt = Convert.ToDecimal(opnAmt) + (ledgerMasterViewModel != null ? ledgerMasterViewModel.OpnAc == AccountDrCr.Dr ? Convert.ToDecimal(ledgerMasterViewModel.OpnAmt) : Convert.ToDecimal(-ledgerMasterViewModel.OpnAmt) : 0);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="SearchLedgerFile" asp-controller="Transaction" method="post" autocomplete="off">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							@if (!softwareheader.SoftwareMode)
+							{
+								@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									</select>
+								}
+							}
+							else
+							{
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch" onblur="FilterAccount()">
+										@if (Convert.ToInt32(ViewBag.CompId) > 0)
+										{
+											<option value="@companyDetailViewModels.Id">@companyDetailViewModels.TransCode</option>
+										}
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch" onblur="FilterAccount()">
+									</select>
+								}
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+							<input asp-for="AcId" class="form-control form-control-sm" hidden />
+							<input asp-for="CustomerName" class="form-control form-control-sm AccountDetailRecord" onfocus="AccountSearchRecord();" onblur="IdZero();" title="A/c Name" placeholder="Search Account's Name" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="FromDate" class="form-control form-control-sm" title="From Date" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="UptoDate" class="form-control form-control-sm" title="Upto Date" />
+						</div>
+					</div>
+					<div class="form-group row ">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />
+							<input type="button" value="Print" class="btn btn-primary  btn-sm"
+								   onclick="printDiv()">
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="PurchaseFileTable1">
+			<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" title="Search Ledger File Records">
+				<thead class="RedDarkWhiteListHeader small">
+					<tr>
+						<th class="wdp-4">
+							Vouch.No.
+						</th>
+						<th class="wdp-4">
+							Date
+						</th>
+						<th class="wdp-10">
+							Type
+						<th>
+							Particular
+						</th>
+						<th class="wdp-10 text-right">
+							Debit Amt.
+						</th>
+						<th class="wdp-10 text-right">
+							Credit Amt
+						</th>
+						<th class="wdp-11 text-right">
+							Balance Amt
+						</th>
+					</tr>
+				</thead>
+				<tbody class="small">
+					@if (listItem.Any())
+					{
+						<tr>
+							<td colspan="4" class="text-right">
+								Openning Balance
+							</td>
+							<td>
+								@if (opnAmt > 0)
+								{
+									@opnAmt
+								}
+							</td>
+							<td>
+								@if (opnAmt <= 0)
+								{
+									Math.Abs(opnAmt);
+								}
+							</td>
+							<td class="text-right">
+								<h6>
+									@if (BalAmt >= 0)
+									{
+										@(Math.Abs(BalAmt) + " Dr")
+									}
+									else
+									{
+										@(Math.Abs(BalAmt) + " Cr")
+									}
+								</h6>
+							</td>
+						</tr>
+						@foreach (var item in listItem)
+						{
+							int countnox = 1;
+							var itemcount = item.VoucherDetailViewModels;
+							var itemcountdrcr = item.VoucherDetailViewModels.Sum(x => x.Cr_Amt + x.Dr_Amt);
+							int rowcountx = itemcount.Count();
+							if (itemcountdrcr > 0)
+							{
+								<tr>
+									<td rowspan="@rowcountx">
+										@item.VVNo
+									</td>
+									<td rowspan="@rowcountx">
+										@item.VDate
+									</td>
+									<td rowspan="@rowcountx">
+										@item.VType
+									</td>
+									@foreach (var itemx in item.VoucherDetailViewModels.Where(x => x.VIMId == item.VId && x.TempSrNo == 1 && (x.Cr_Amt > 0 || x.Dr_Amt > 0)))
+									{
+										BalAmt = BalAmt + Convert.ToDecimal(itemx.Dr_Amt - itemx.Cr_Amt);
+										<td>
+											@itemx.VDLedger1.PartyName
+											@if (rowcountx == 1)
+											{
+												<br />
+												@item.Remark
+											}
+										</td>
+										<td class="text-right">
+											@{
+												if (itemx.Dr_Amt > 0)
+												{
+													@itemx.Dr_Amt
+												}
+											}
+										</td>
+										<td class="text-right">
+											@{
+												if (itemx.Cr_Amt > 0)
+												{
+													@itemx.Cr_Amt
+												}
+											}
+										</td>
+										<td class="text-right">
+											<h6>
+												@if (BalAmt >= 0)
+												{
+													@(Math.Abs(BalAmt) + " Dr")
+												}
+												else
+												{
+													@(Math.Abs(BalAmt) + " Cr")
+												}
+											</h6>
+										</td>
+									}
+								</tr>
+								foreach (var itemx in item.VoucherDetailViewModels.Where(x => x.VIMId == item.VId && x.TempSrNo != 1 && (x.Cr_Amt > 0 || x.Dr_Amt > 0)))
+								{
+									BalAmt = BalAmt + Convert.ToDecimal(itemx.Dr_Amt - itemx.Cr_Amt);
+									<tr>
+										<td>
+											@itemx.VDLedger1.PartyName
+											@if (rowcountx - 1 == countnox)
+											{
+												<br />
+												@item.Remark
+											}
+										</td>
+										<td class="text-right">
+											@{
+												if (itemx.Dr_Amt > 0)
+												{
+													@itemx.Dr_Amt
+												}
+											}
+										</td>
+										<td class="text-right">
+											@{
+												if (itemx.Cr_Amt > 0)
+												{
+													@itemx.Cr_Amt
+												}
+											}
+										</td>
+										<td class="text-right">
+											<h6>
+												@if (BalAmt >= 0)
+												{
+													@(Math.Abs(BalAmt) + " Dr")
+												}
+												else
+												{
+													@(Math.Abs(BalAmt) + " Cr")
+												}
+											</h6>
+										</td>
+									</tr>
+									countnox++;
+								}
+							}
+						}
+					}
+					else
+					{
+						<tr title="Search Ledger File Records">
+							<td colspan="8">
+								@if (Model.SearchRecordFinder == "Yes")
+								{
+									<h3 class="text-danger text-center">No Record found......</h3>
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<environment include="Development">
+		<script src="~/js/LedgerFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/LedgerFile.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#PurchaseFileTable1').height(screen.height - 250);
+	</script>
+	<script>
+		function printDiv() {
+			var divContents = document.getElementById("PurchaseFileTable1").innerHTML;
+			var a = window.open('', '', 'height=500, width=500');
+			a.document.write('<html>');
+			a.document.write('<body > <h1>Ledger Print<br>');
+			a.document.write(divContents);
+			a.document.write('</body></html>');
+			a.document.close();
+			a.print();
+		}
+	</script>
+}

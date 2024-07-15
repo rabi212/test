@@ -1,0 +1,100 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <!--<UserSecretsId>1f229c7c-4794-4311-91f0-05bb37ab7068</UserSecretsId>    
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />-->
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <UserSecretsId>6058afc6-11c7-4c27-be02-4619cee15aee</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="bundleconfig.json" />
+    <None Include="Views\Master\CreatePatientDueReciptFile.cshtml" />
+    <None Include="Views\Master\CreateMedicalFile.cshtml" />
+    <None Include="Views\Master\CreateReportSerialNoFile.cshtml" />
+    <None Include="Views\Master\SearchPatientDueReciptFile.cshtml" />
+    <None Include="Views\Master\_MedTestDetailViewItems.cshtml" />
+    <None Include="Views\Master\_TempReportDetailViewItems.cshtml" />
+    <None Include="Views\PayBill\ALLPayBillFile.cshtml" />
+    <None Include="Views\PayBill\AutomationPayBillFile.cshtml" />
+    <None Include="Views\PayBill\CreatePayBillFile.cshtml" />
+    <None Include="Views\PayBill\ExecutiveMonthlyBankStatement.cshtml" />
+    <None Include="Views\PayBill\ExecutiveMonthlyDeductation.cshtml" />
+    <None Include="Views\PayBill\ExecutiveMonthlyPayBillFile.cshtml" />
+    <None Include="Views\PayBill\MonthlySheetPayBillFile.cshtml" />
+    <None Include="Views\PayBill\SearchPayBillFile.cshtml" />
+    <None Include="Views\Payment\Capture.cshtml" />
+    <None Include="Views\Payment\Fail.cshtml" />
+    <None Include="Views\Payment\Payment.cshtml" />
+    <None Include="Views\Payment\Registration.cshtml" />
+    <None Include="Views\Payment\Success.cshtml" />
+    <None Include="Views\Reporting\PatientBillPrint.cshtml" />
+    <None Include="Views\Reporting\PatientMedReportPrintQ.cshtml" />
+    <None Include="Views\Reporting\PatientMedReportPrint.cshtml" />
+    <None Include="Views\Reporting\PatientReportPrintMultple.cshtml" />
+    <None Include="Views\Reporting\PatientReportPrintDoc.cshtml" />
+    <None Include="Views\Reporting\PatientReportPrintQ.cshtml" />
+    <None Include="Views\Reporting\PatientReportPrint.cshtml" />
+    <None Include="Views\Shared\EditorTemplates\OpenItemMasterDetailViewModel.cshtml" />
+    <None Include="Views\Shared\EditorTemplates\PatientDetailsMasterViewModel.cshtml" />
+    <None Include="Views\Shared\EditorTemplates\MedTestDetailViewModel.cshtml" />
+    <None Include="Views\Shared\EditorTemplates\PatientInvestigationViewModel.cshtml" />
+    <None Include="Views\Shared\EditorTemplates\TestSubMasterViewModel.cshtml" />
+    <None Include="Views\Transaction\CreateBankPaymentFile.cshtml" />
+    <None Include="Views\Transaction\CreateBankReciptFile.cshtml" />
+    <None Include="Views\Transaction\CreateCashPaymentFile.cshtml" />
+    <None Include="Views\Transaction\CreateCashReciptFile.cshtml" />
+    <None Include="Views\Transaction\CreateCreditNoteFile.cshtml" />
+    <None Include="Views\Transaction\CreateDebitNoteFile.cshtml" />
+    <None Include="Views\Transaction\CreateOrderFile.cshtml" />
+    <None Include="Views\Transaction\CreatePurchaseFile.cshtml" />
+    <None Include="Views\Transaction\CreateSaleFile.cshtml" />
+    <None Include="Views\Transaction\_PurchaseDetailViewItems.cshtml" />
+    <None Include="Views\Transaction\_PurchaseOrderDetailViewItems.cshtml" />
+    <None Include="Views\Transaction\_PurchaseRDetailViewItems.cshtml" />
+    <None Include="Views\Transaction\_SaleDetailViewItems.cshtml" />
+    <None Include="Views\Transaction\_SaleRDetailViewItems.cshtml" />
+    <None Include="Views\Transaction\SearchCreditNoteFile.cshtml" />
+    <None Include="Views\Transaction\SearchDebitNoteFile.cshtml" />
+    <None Include="Views\Transaction\SearchLedgerFile.cshtml" />
+    <None Include="Views\Transaction\SearchOrderFile.cshtml" />
+    <None Include="Views\Transaction\SearchPurchaseFile.cshtml" />
+    <None Include="Views\Transaction\SearchSaleFile.cshtml" />
+    <None Include="Views\Transaction\SearchVoucherFile.cshtml" />
+    <None Include="Views\Transaction\_VoucherDetailViewItems.cshtml" />
+    <None Include="wwwroot\EmailTemplate\EmailConfirm.html" />
+    <None Include="wwwroot\EmailTemplate\ForgotPassword.html" />
+    <None Include="wwwroot\EmailTemplate\TestEmail.html" />
+    <None Include="wwwroot\ExportFooterALLPage.html" />
+    <None Include="wwwroot\ExportFooter.html" />
+    <None Include="wwwroot\ExportHeader.html" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />
+    <PackageReference Include="Grpc.Core" Version="2.46.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="5.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.17">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.9.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
+    <PackageReference Include="RazorPay.Core" Version="1.0.2" />
+    <PackageReference Include="Rotativa.AspNetCore" Version="1.2.0-beta" />
+    <!--<PackageReference Include="System.Drawing.Common" Version="6.0.0" />-->
+    <PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ITCGKP.Data.Services\ITCGKP.Data.Services.csproj" />
+    <ProjectReference Include="..\ITCGKP.Data.ViewModels\ITCGKP.Data.ViewModels.csproj" />
+  </ItemGroup>
+  
+</Project>

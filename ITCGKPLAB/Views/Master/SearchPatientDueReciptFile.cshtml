@@ -1,0 +1,186 @@
+﻿@model OpenSearchViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject IMasterRepository _mrepository;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Search Due Receipt File";
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	List<PatientDueReciptViewModel> listItem = await _mrepository.GetPatientDueReciptDateWise(Model.UserId,Model.FromDate, Model.UptoDate,Model.PaymentMode);	
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="SearchPatientDueReciptFile" asp-controller="Master" method="post" autocomplete="off">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="UserId" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+									<option value="ALL">ALL</option>
+								</select>
+							}
+							else
+							{
+								if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+								{
+									<select asp-for="UserId" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == Model.CompId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+										<option value="ALL">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+									</select>
+								}
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<select asp-for="PaymentMode" asp-items="Html.GetEnumSelectList<PayMode>()" class="form-control form-control-sm selectedItems" title="Payment Type">
+								<option value="ALL">ALL</option>
+							</select>
+						</div>
+						<label asp-for="FromDate" class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="FromDate" class="form-control form-control-sm" />
+						</div>
+						<label asp-for="UptoDate" class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="UptoDate" class="form-control form-control-sm" />
+						</div>
+					</div>				
+				</div>
+				<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 logofont CustLabel">
+					<label>Record : <span class="text-danger">@listItem.Count</span></label>
+					<label>Total Amt. : <span class="text-danger">@(listItem.Sum(x => x.TotalAmt))</span></label>
+					<label>Disc. Amt. : <span class="text-danger">@(listItem.Sum(x => x.DiscAmt))</span></label>
+					<label>Net Amt. : <span class="text-danger">@(listItem.Sum(x => x.PaidAmt))</span></label>
+				</div>
+				<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 text-sm-right CustLabel">
+					<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />
+					<a asp-action="CreatePatientDueReciptFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm" style="width:auto;">Add New</a>
+					<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="SaleOrderItemMasterlistTable1">
+			<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" title="Payment Salary Search Records">
+				<thead class="RedDarkWhiteListHeader small">
+					<tr >
+						<th class="wdp-5">
+							Id
+						</th>
+						<th class="wdp-6">
+							User's Name
+						</th>
+						<th class="wdp-10">
+							Branch's Name
+						</th>
+						<th class="wdp-5">
+							Regst.Date
+						</th>
+						<th class="wdp-5">
+							UID
+						</th>
+						<th class="wdp-5">
+							Pay Date
+						</th>
+						<th>
+							Patient Details
+						</th>
+						<th>
+							Investigation
+						</th>
+						<th class="wdp-5">
+							Payment
+						</th>
+						<th class="text-right wdp-8">
+							Total Amt.
+						</th>
+						<th class="text-right wdp-8">
+							Disc. Amt.
+						</th>
+						<th class="text-right wdp-8">
+							Net Amt.
+						</th>
+						<th class="wdp-8 text-center">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (listItem.Any())
+					{
+						@foreach (var item in listItem)
+						{
+							<tr class="small fullpaidColor">
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@((await userManager.FindByIdAsync(item.UserCode)).UserName.Substring(0,8).ToUpper())
+								</td>
+								<td>
+									@item.PatientViewModel.CompanyDetailViewModel.NameAddress
+								</td>
+								<td>
+									@item.VDate
+								</td>
+								<td>
+									@item.VNo
+								</td>
+								<td>
+									@item.PatientViewModel.SDate
+								</td>
+								<td>
+									@(item.PatientViewModel.TitleName + " " + item.PatientViewModel.Name + " " + item.PatientViewModel.Age + " " + item.PatientViewModel.AgeType + " " + item.PatientViewModel.Sex + "Mob.No." + item.PatientViewModel.MobileNo)
+								</td>
+								<td>
+									@item.PatientViewModel.TestDetailRecord
+								</td>
+								<td class="wdp-5">
+									@item.PaymentType
+								</td>
+								<td class="text-right">
+									@item.TotalAmt
+								</td>
+								<td class="text-right">
+									@item.DiscAmt
+								</td>
+								<td class="text-right">
+									@item.PaidAmt
+								</td>
+								<td class="text-center">
+									<a asp-action="DueReciptBillPrint" asp-controller="Reporting" asp-route-id="@item.Id" target="_blank" title="Print"><span><i class="fa fa-print mr-3 fa-1x icon-color-blue"></i></span></a>
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditPatientDueReciptPolicy")).Succeeded)
+									{
+										<a asp-action="CreatePatientDueReciptFile" asp-controller="Master" asp-route-id=@item.Id title="Edit"><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeletePatientDueReciptPolicy")).Succeeded)
+									{
+										<a asp-action="DeletePatientDueReciptFile" asp-controller="Master" asp-route-id=@item.Id title="Delete" onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr title="Patient Due Recipt Search Records">
+							<td colspan="13">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$('#SaleOrderItemMasterlistTable1').height(screen.height - 210);
+	</script>
+}

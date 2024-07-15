@@ -1,0 +1,222 @@
+﻿@model SaleViewModel
+@inject ISettingRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject IAuthorizationService authorizationService;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Use Material File";
+	string submitValue = Convert.ToInt32(Model.SSId) > 0 ? "Update" : "Save";
+	var Currentuser = await userManager.GetUserAsync(User);
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h5 class="text-center text-white HeadingColorRed">Use Material Voucher</h5>
+		<form asp-action="CreateSaleFile" asp-controller="Transaction" method="post" id="saleform" autocomplete="off">
+			<input type="text" id="CompanyStateId" hidden />
+			<input asp-for="SSId" class="form-control" hidden />
+			<input asp-for="UserCode" class="form-control" value="@(Model.SSId > 0 ? Model.UserCode : Currentuser.Id)" hidden />
+			<input asp-for="CurrentNo" class="form-control" hidden />
+			<input asp-for="RowId" class="form-control" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+					<div class="form-group row">
+						<label asp-for="CompId" class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-4 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-7 col-lg-7 col-xl-8">
+							@if (!softwareheader.SoftwareMode)
+							{
+								<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" onblur="GetPurVoucherSrNo();GetCompanyStateId();">
+								</select>
+							}
+							else
+							{
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" onblur="GetPurVoucherSrNo();">
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(companyDetail.Id)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" onblur="GetPurVoucherSrNo();">
+									</select>
+								}
+							}
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="SSVNo" class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+							<input asp-for="SSVNo" class="form-control form-control-sm CustomText" hidden />
+							<h3 id="SSVNoX" class="col-form-label col-form-label-sm  CustomText"></h3>
+						</div>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-4">
+							<input asp-for="SDate" class="form-control form-control-sm CustomText" hidden />
+							<h3 id="SDateX" class="col-form-label col-form-label-sm  CustomText"></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					<div class="form-group row">
+						<label asp-for="PayMode" class="col-12 col-sm-12 col-md-3 col-lg-5 col-xl-5 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-7 col-xl-7">
+							<select asp-for="PayMode" asp-items="Html.GetEnumSelectList<PaymentMode>()" class="form-control form-control-sm selectedItems">
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-7 col-lg-7 col-xl-7">
+					<div class="form-group row">
+						<label asp-for="CustName" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-2 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-9  col-lg-9 col-xl-10">
+							<input asp-for="CustName" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CustAddress1" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9  col-lg-9 col-xl-10">
+							<input asp-for="CustAddress1" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="stateScroll boxcolorback" id="SaleItemTable1">
+						<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="SaleItemTableWidth">
+							<thead class="RedDarkWhiteListHeader small">
+								<tr>
+									<th class="text-center wdp-3">##</th>			@*Action*@
+									<th class="wdp-4">SrNo.</th>
+									<th class="wdp-31">Item</th>
+									<th class="text-sm-right wdp-8">Batch No.</th>
+									<th class="text-sm-right wdp-8">Exp.Date</th>
+									<th class="text-sm-right wdp-5">Qty</th>
+									<th class="text-sm-right wdp-6">Rate</th>
+									<th class="text-sm-right wdp-5">Disc%</th>
+									<th class="text-sm-right wdp-7">Disc Amt</th>
+									<th class="text-sm-right wdp-5">GST%</th>
+									<th class="text-sm-right wdp-7">MRP</th>
+									<th class="text-sm-right wdp-8">Amount</th>
+								</tr>
+							</thead>
+							<tbody id="orderItemContinaer">
+								@Html.EditorFor(model => model.SaleDetailViewModels)
+							</tbody>
+							<tfoot>
+								<tr>
+									@*<td><input type="button" id="btnAdd" value="New" class="btn btn-primary btn-sm" style="width:auto;" /></td>*@
+									<td class="text-center">
+										<a href="#" id="btnAdd" type="button" class="mt-1"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+									</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+					<div class="form-group row">
+						<label asp-for="Remark" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10  col-lg-10 col-xl-10">
+							@*<input asp-for="Remark" class="form-control form-control-sm CustomText" />*@
+							<textarea asp-for="Remark" class="form-control form-control-sm CustomText"></textarea>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					<div class="form-group row">
+						<label asp-for="TotalAmt" class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<input asp-for="TotalAmt" class="form-control form-control-sm CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<h4 id="TotalAmtX" class="col-form-label col-form-label-sm text-right CustomText"><b>0.00</b></h4>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DiscAmt" class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<input asp-for="DiscAmt" class="form-control form-control-sm CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<h4 id="DiscAmtX" class="col-form-label col-form-label-sm text-right CustomText text-success"><b>0.00</b></h4>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					<div class="form-group row">
+						<label asp-for="TaxAmt" class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<input asp-for="TaxAmt" class="form-control form-control-sm CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<h4 id="TaxAmtX" class="col-form-label col-form-label-sm text-right CustomText text-danger"><b>0.00</b></h4>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="NetAmt" class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<input asp-for="NetAmt" class="form-control form-control-sm CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<h4 id="NetAmtX" class="col-form-label col-form-label-sm text-right CustomText text-danger"><b>0.00</b></h4>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+					<div class="form-group row">
+						<label asp-for="CreditAmt" class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<input asp-for="CreditAmt" class="form-control form-control-sm CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<h4 id="CreditAmtX" class="col-form-label col-form-label-sm text-right CustomText text-danger"><b>0.00</b></h4>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PaidAmt" class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<input asp-for="PaidAmt" class="form-control form-control-sm CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 p-2">
+					<div class="form-group row">
+						<div class="col-sm-12 text-right CustLabel">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+							<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							@if ((await authorizationService.AuthorizeAsync(User, "SaleBillPrintFilePolicy")).Succeeded && Model.SSId > 0)
+							{
+								<a asp-action="SaleBillPrint" asp-controller="Reporting" class="btn btn-sm btn-outline-primary" asp-route-id="@Model.SSId" target="_blank" style="width:auto">Print</a>
+							}
+							else
+							{
+								<a asp-action="SaleBillPrint" asp-controller="Reporting" class="btn btn-sm btn-outline-primary disabled" asp-route-id="@Model.SSId" target="_blank" style="width:auto">Print</a>
+							}
+							<a asp-action="CreateSaleFile" asp-controller="Transaction" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="SearchSaleFile" asp-controller="Transaction" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/SaleFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/SaleFile.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#SaleItemTable1').height(screen.height - 400);
+		$('#SaleItemTableWidth').width(screen.width - 80);
+	</script>
+}

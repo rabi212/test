@@ -1,0 +1,555 @@
+﻿@model PatientViewModel
+@inject IMasterRepository _mrepository;
+@inject ISettingRepository _repository;
+@inject IFinancialRepository _frepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@inject IAuthorizationService authorizationService;
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Patient Registration File";
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+	string collectvlue = Model.Type;
+	var pageresult = await _mrepository.GetPageSetuppPrintComp((int)((await userManager.GetUserAsync(User)).CompanyDetailId));
+
+	TestGroupMasterViewModel TestGroupMasterViewModel = await _mrepository.GetTestGroupMasterCompany(softwareheader.SoftwareMode == true ? (int)((await userManager.GetUserAsync(User)).CompanyDetailId) : 1);
+}
+<div class="modal" id="ModelIdReg" role="dialog" tabindex="-1">
+	<div class="modal-dialog modal-dialog-centered modal-sm" role="document" style="height:20px;">
+		<div class="spinner-border text-primary" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+		<div class="spinner-grow text-secondary" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+		<div class="spinner-grow text-success" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+		<div class="spinner-border text-danger" role="status">
+			<span class="sr-only">Loading...</span>
+		</div>
+	</div>
+</div>
+<div id="PlaceHolderHere"> </div>
+
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h4 class="text-center text-white HeadingColorRed">Patient Registration File</h4>
+		<form asp-action="CreateRegistrationFile" asp-controller="Master" method="post" id="form" autocomplete="off">
+			<input asp-for="Id" class="form-control  CustomText" hidden />
+			@*<input asp-for="CompId" class="form-control  CustomText" value="@((int)(await userManager.GetUserAsync(User)).CompanyDetailId)" hidden />*@
+			<input asp-for="UserCode" class="form-control  CustomText" value="@((await userManager.GetUserAsync(User)).Id)" hidden />
+			<input asp-for="CurrentNo" class="form-control  CustomText" hidden />
+			<input asp-for="RowId" class="form-control  CustomText" hidden />
+			<input asp-for="VNo" class="form-control  CustomText" hidden />
+			<input asp-for="SoftwareType" class="form-control  CustomText" value="@(softwareheader.SoftwareMode == true ? "One" : "ALL")" hidden />
+
+			<input id="modeno" class="form-control  CustomText" value="@(TestGroupMasterViewModel.Id)" hidden />
+			<input id="modetype" class="form-control  CustomText" value="@(TestGroupMasterViewModel.ShortName)" hidden />
+
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+								<input type="text" name="messageId" id="messageId" value="@ViewBag.message" hidden />
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 text-left">
+					<div class="anyScrollCompany">
+						<div class="form-row">
+							@foreach (var item in await _mrepository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1))
+							{
+								<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+									<P2><b class="text-danger">@item.ShortName</b> - @item.Name</P2>
+								</div>
+							}
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+					<div class="form-group row">
+						<label asp-for="SDate" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="SDate" class="form-control   customdatetime "  />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="STime" class="form-control  CustomTimeX " />
+						</div>
+						<label asp-for="RDate" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="RDate" class="form-control   customdatetime" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="RTime" class="form-control   CustomTimeX " />
+						</div>
+
+					</div>
+					<div class="form-group row">
+						@if (!softwareheader.SoftwareMode)
+						{
+							<label asp-for="CompId" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems" onblur="GetPatientVoucherNoCompanyWise(); DoctorFilterByAccount(); ClientFilterByAccount(); TestFilterMode();GetPatientRefSrNo();">
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems" onblur="GetPatientVoucherNoCompanyWise(); DoctorFilterByAccount();ClientFilterByAccount();TestFilterMode();GetPatientRefSrNo();">
+									</select>
+								}
+							</div>
+						}
+						else
+						{
+							<label asp-for="CompId" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems" onblur="GetPatientVoucherNoCompanyWise(); DoctorFilterByAccount();ClientFilterByAccount();TestFilterMode();GetPatientRefSrNo();">
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems" onblur="GetPatientVoucherNoCompanyWise(); DoctorFilterByAccount();ClientFilterByAccount();TestFilterMode();GetPatientRefSrNo();">
+									</select>
+								}
+							</div>
+						}
+
+						<label asp-for="RefNo" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							@*<select asp-for="Type" asp-items=" (await _mrepository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.ShortName, Value = x.ShortName.ToString() })" class="form-control  CustomText selectedItems" onchange="GetChangeTypebyValue(); GetChangeModebyValue();" onblur="GetPatientRefSrNo();">
+								</select>*@
+							@{
+								if (pageresult.PatientRefNo == true && pageresult.PatientRefNoGroupwise != true)
+								{
+									<select asp-for="Type" asp-items=" (await _mrepository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.ShortName, Value = x.ShortName.ToString() })" class="form-control  CustomText selectedItems" onchange="GetChangeTypebyValue(); GetChangeModebyValue();" onblur="GetPatientRefSrNo();" hidden>
+									</select>
+									<input asp-for="RefNo" class="form-control  CustomText" hidden />
+									<h3 id="RefNoXX" class="col-form-label " style="margin-top:-15px; color:brown;"></h3>
+								}
+								else if (pageresult.PatientRefNo == true && pageresult.PatientRefNoGroupwise == true)
+								{
+									<select asp-for="Type" asp-items=" (await _mrepository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.ShortName, Value = x.ShortName.ToString() })" class="form-control  CustomText selectedItems" onchange="GetChangeTypebyValue(); GetChangeModebyValue();" onblur="GetPatientRefSrNo();">
+									</select>
+								}
+								else if (pageresult.PatientRefNo != true && pageresult.PatientRefNoGroupwise != true)
+								{
+									<select asp-for="Type" asp-items=" (await _mrepository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.ShortName, Value = x.ShortName.ToString() })" class="form-control  CustomText selectedItems" onchange="GetChangeTypebyValue(); GetChangeModebyValue();" hidden>
+									</select>
+									<input asp-for="RefNo" class="form-control  CustomText" />
+								}
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2  text-right" style="margin-top:-15px; color:brown;">
+							@if (pageresult.PatientRefNo == true && pageresult.PatientRefNoGroupwise == true)
+							{
+								<input asp-for="RefNo" class="form-control  CustomText" hidden />
+								<h3 id="RefNoXX" class="col-form-label "></h3>
+							}
+						</div>
+					</div>
+
+
+					<div class="form-group row">
+						<label asp-for="Name" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="TitleName" asp-items=" (await _repository.GetAllTitles(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control  CustomText selectedItems" onblur="AutoGenderSelect();">
+							</select>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<input asp-for="Name" class="form-control  CustomText capitalise" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Age" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="Age" class="form-control  CustomText text-sm-right" onkeypress="return OnlyNumber(event)" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="AgeType" class="form-control  CustomText selectedItems">
+								<option value="Y">Year</option>
+								<option value="M">Month</option>
+								<option value="D">Days</option>
+							</select>
+						</div>
+						<label asp-for="Sex" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  text-right CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 search_selected_box">
+							<select asp-for="Sex" asp-items="Html.GetEnumSelectList<Gender>()" class="form-control  CustomText selectedItems " data-live-search="true">
+							</select>
+						</div>
+
+					</div>
+					<div class="form-group row">
+						<label asp-for="EmailAddress" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+							<input asp-for="EmailAddress" class="form-control  CustomText" />
+						</div>
+						<div class="checkbox col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 text-right CustLabel pt-1 text-danger">
+							<label>
+								<input asp-for="EmailAuto" />
+								@Html.DisplayNameFor(model => model.EmailAuto)
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<input asp-for="DoctorAcCode" class="form-control  CustomText" hidden />
+						<input asp-for="DoctorAcCodeX" class="form-control  CustomText" hidden />
+						<label asp-for="DrName" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+							<input asp-for="DrName" class="form-control  CustomText DoctorDetailRecord" onfocus="DoctorByAccountSearchRecord();" />
+						</div>
+						@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin") || User.IsInRole("Manage"))
+						{
+							<div class="col-1 click CustomText text-right" style="cursor:pointer">Click</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 text-right">
+								<button id="Buttonx" type="button" class="btn btn-sm btn-outline-primary CustomText " data-toggle="ajax-model" data-target="#addNewDoctor"
+										data-url="@Url.Action("CreateDoctorFileR")" style="width:auto;">
+									New Doctor
+								</button>
+							</div>
+						}
+					</div>
+
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+					<div class="form-group row">
+						<label asp-for="MobileNo" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+							<input asp-for="MobileNo" class="form-control  " onkeypress="return OnlyNumber(event)" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="AdharNo" class="form-control " placeholder="Adhar No" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Address" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="Address" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<input asp-for="ClientCode" class="form-control  CustomText" hidden />
+						<input asp-for="TempPanel" class="form-control  CustomText" hidden  value="@( Model.Id != 0 ? Model.ClientFileViewModel != null ?  Convert.ToInt32(Model.ClientFileViewModel.RegPanel) : Model.TempPanel : Model.TempPanel  )" />
+						<label asp-for="ClientCode" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="ClientName" class="form-control  CustomText ClientDetailRecord" onfocus="ClientSearchRecord();" value="@( Model.Id != 0 ? Model.ClientFileViewModel != null ? Model.ClientFileViewModel.Name : Model.ClientName : Model.ClientName  )" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CollectedIn" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label   CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<select name="CollectedIn" asp-items="Html.GetEnumSelectList<Collected>()" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+						<label asp-for="AgentAcCode" class="col-sm-1 col-form-label   CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+							<select asp-for="AgentAcCode" asp-items=" (await _mrepository.GetAllAgent(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+
+					<div class="form-group row">
+						<label asp-for="PaymentType" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+							<select asp-for="PaymentType" asp-items="Html.GetEnumSelectList<PayMode>()" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<select asp-for="UpdateRecord" class="form-control  CustomText selectedItems" title="Today List (Yes/No)">
+								<option value="0">Yes</option>
+								<option value="1">No</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12" style="margin-top:-15px;">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+							<div class="stateScroll boxcolorback" id="OpenItemTable1">
+								<table class="table  table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="OpenItemTableWidth">
+									<thead class="RedDarkWhiteListHeader">
+										<tr>
+											<th class="text-center wdp-1">##</th>			@*Action*@
+											@*<th style="width:10%">SrNo.</th>*@
+											<th class="wdp-20">Test's Name</th>
+											<th class="wdp-6 text-right">Rate</th>
+											<th class="wdp-7 text-right">Standared Rate</th>
+											<th class="wdp-10">#</th>
+										</tr>
+									</thead>
+									<tbody id="orderItemContinaer">
+										@Html.EditorFor(model => model.PatientDetailsMasterViewModels)
+									</tbody>
+									<tfoot>
+										<tr>
+											@*<td><input type="button" id="btnAdd" value="New" class="btn btn-primary btn-sm" style="width:auto;" /></td>*@
+											<td class="text-center">
+												<a href="#" id="btnAdd" type="button" class="mt-1"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+											</td>
+										</tr>
+									</tfoot>
+								</table>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+
+							<br />
+							<div class="anyScrollTestDoctor" id="discountTableHeight">
+								<input type="text" id="TotalRow" value="@ViewBag.listCount" hidden />
+								<br />
+								@if (Model.PatientDiscountMasterViewModels.Any())
+								{
+									for (int i = 0; i < Model.PatientDiscountMasterViewModels.Count; i++)
+									{
+										if (i == 0)
+										{
+											<div class="form-group row">
+												<input asp-for="@Model.PatientDiscountMasterViewModels[i].Id" class="form-control " hidden />
+												<input asp-for="@Model.PatientDiscountMasterViewModels[i].CompIdX" class="form-control " hidden />
+												<input asp-for="@Model.PatientDiscountMasterViewModels[i].TestGId" class="form-control " hidden />
+												<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+													<input asp-for="@Model.PatientDiscountMasterViewModels[i].TestGroupMasterViewModel.Name" class="form-control  CustomText" disabled />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+													<input asp-for="@Model.PatientDiscountMasterViewModels[i].DiscPer1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);AutoZeroSet();" hidden />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+													<input asp-for="@Model.PatientDiscountMasterViewModels[i].DiscAmt1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalDiscountDetails();" />
+												</div>
+											</div>
+										}
+										else
+										{
+											<div class="form-group row">
+												<input asp-for="@Model.PatientDiscountMasterViewModels[i].Id" class="form-control " hidden />
+												<input asp-for="@Model.PatientDiscountMasterViewModels[i].CompIdX" class="form-control " hidden />
+												<input asp-for="@Model.PatientDiscountMasterViewModels[i].TestGId" class="form-control " hidden />
+												<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+													<input asp-for="@Model.PatientDiscountMasterViewModels[i].TestGroupMasterViewModel.Name" class="form-control  CustomText" disabled />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+													<input asp-for="@Model.PatientDiscountMasterViewModels[i].DiscPer1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalDiscountDetails();" hidden />
+												</div>
+												<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+													<input asp-for="@Model.PatientDiscountMasterViewModels[i].DiscAmt1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalDiscountDetails();" />
+												</div>
+											</div>
+										}
+									}
+								}
+							</div>
+							<div class="testlistRegistration" id="todaylistTable1">
+								<div class="form-group row">
+									<label asp-for="AreaCode" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+										<select asp-for="AreaCode" asp-items=" (await _mrepository.GetAllArea(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems">
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">
+									<label asp-for="DiscountReasion" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+										<input asp-for="DiscountReasion" class="form-control  CustomText" />
+									</div>
+								</div>
+								<div class="form-group row">
+									<label asp-for="ApprovalBy" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+										<input asp-for="ApprovalBy" class="form-control  CustomText" />
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<label asp-for="DiscountType" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+										<input asp-for="DiscountType" class="form-control  CustomText " />
+									</div>
+								</div>
+								<div class="form-group row">
+									<label asp-for="TotalAmt" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9 text-dark  " style="margin-top:-15px;">
+										<input asp-for="TotalAmt" class="form-control" hidden />
+										<h3 id="TotalAmtXX" class="col-form-label "><b>0.00</b></h3>
+									</div>
+
+								</div>
+								<div class="form-group row">
+									<label asp-for="DiscPer" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+										<input asp-for="DiscPer" class="form-control  CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this); GrandTotalPaid();" />
+									</div>
+									<label asp-for="DiscAmt" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+										<input asp-for="DiscAmt" class="form-control  CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this); GrandTotalPaid();" />
+									</div>
+								</div>
+								<div class="form-group row">
+									<label asp-for="CollectionBoy" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+										<input asp-for="CollectionBoy" class="form-control  CustomText" />
+									</div>
+									<label asp-for="CollectionCharge" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label  CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+										<input asp-for="CollectionCharge" class="form-control  CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this); GrandTotalPaid();" />
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+					<div class="form-group row">
+						<label asp-for="DeliveryBoy" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+							<input asp-for="DeliveryBoy" class="form-control  CustomText" />
+						</div>
+						<label asp-for="DeliveryCharge" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="DeliveryCharge" class="form-control  CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this); GrandTotalPaid();" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5">
+					<div class="form-group row">
+						<label asp-for="PaidAmt" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="PaidAmt" class="form-control  CustomText text-sm-right" onkeypress="return OnlyNumber(event)" onblur="ConvertTwoDecimal(this); PaidBal();" />
+						</div>
+						<label asp-for="BalAmt" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 text-dark text-right" style="margin-top:-15px;">
+							<input asp-for="BalAmt" class="form-control  text-sm-right" hidden />
+							<h3 id="BalAmtXX" class="col-form-label  text-sm-right"><b></b></h3>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+					<div class="form-group row">
+						<label asp-for="Remark" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+							<input asp-for="Remark" class="form-control  CustomText" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-5 col-xl-5 ">
+					<input asp-for="TotalIPAmt" class="form-control  CustomText " hidden />
+					<div class="form-group row CustComboTop">
+						<div class="col-12 text-sm-right">
+							<input type="submit" value="@submitValue" class="btn btn-sm btn-success" onclick="ModelShwoHid();" />
+							@if ((await authorizationService.AuthorizeAsync(User, "MedicalResultPolicy")).Succeeded)
+							{
+								@if (Model.Id == 0)
+								{
+									<a asp-action="CreateMedicalFile" asp-controller="Master" asp-route-ptid="@Model.Id" asp-route-isSuccess="false" class="btn btn-sm btn-outline-danger disabled">Medical</a>
+								}
+								else
+								{
+									<a asp-action="CreateMedicalFile" asp-controller="Master" asp-route-ptid="@Model.Id" asp-route-isSuccess="false" class="btn btn-sm btn-outline-danger">Medical</a>
+								}
+							}
+							@if (Model.Id == 0)
+							{
+								<a asp-action="PatientBillPrint" asp-controller="Reporting" class="btn btn-sm btn-outline-primary disabled" asp-route-id="@Model.Id" target="_blank">Print</a>
+							}
+							else
+							{
+								<a asp-action="PatientBillPrint" asp-controller="Reporting" class="btn btn-sm btn-outline-primary" asp-route-id="@Model.Id" target="_blank">Print</a>
+							}
+							@if (Model.Id == 0)
+							{
+								<a asp-action="BarcodePrint" asp-controller="Reporting" asp-route-idno="@Model.Id" class="btn btn-sm btn-outline-dark disabled" target="_blank">Barcode</a>
+							}
+							else
+							{
+								<a asp-action="BarcodePrint" asp-controller="Reporting" asp-route-idno="@Model.Id" class="btn btn-sm btn-outline-dark" target="_blank">Barcode</a>
+							}
+
+							@*@if (Model.Id == 0)
+								{
+									<a asp-action="CreatePatientResultFile" asp-controller="Master" asp-route-Ptid="@Model.Id" asp-route-testid="@Model.PatientDetailsMasterViewModels.Select(x => x.TestId).FirstOrDefault()" asp-route-compid="@Model.CompId" class="btn btn-sm btn-outline-danger disabled">Report</a>
+								}
+								else
+								{
+									if (await _mrepository.UpdatePatientInvestigationDoctype(Model.Id, "Reading"))
+									{
+										<a asp-action="CreatePatientResultFile" asp-controller="Master" asp-route-Ptid="@Model.Id" asp-route-testid="@Model.PatientDetailsMasterViewModels.Select(x => x.TestId).FirstOrDefault()" asp-route-compid="@Model.CompId" class="btn btn-sm btn-outline-danger">Report</a>
+									}
+									else
+									{
+										<a asp-action="CreatePatientResultFile" asp-controller="Master" asp-route-Ptid="@Model.Id" asp-route-testid="@Model.PatientDetailsMasterViewModels.Select(x => x.TestId).FirstOrDefault()" asp-route-compid="@Model.CompId" class="btn btn-sm btn-outline-danger disabled">Report</a>
+									}
+								}
+								@if (Model.Id == 0)
+								{
+									<a asp-action="CreatePatientResultDocFile" asp-controller="Master" asp-route-Ptid="@Model.Id" asp-route-compid="@Model.CompId" class="btn btn-sm btn-outline-primary disabled" style="width:auto;">Doc Report</a>
+								}
+								else
+								{
+									if (await _mrepository.UpdatePatientInvestigationDoctype(Model.Id, "Document"))
+									{
+										<a asp-action="CreatePatientResultDocFile" asp-controller="Master" asp-route-Ptid="@Model.Id" asp-route-compid="@Model.CompId" class="btn btn-sm btn-outline-primary" style="width:auto;">Doc Report</a>
+									}
+									else
+									{
+										<a asp-action="CreatePatientResultDocFile" asp-controller="Master" asp-route-Ptid="@Model.Id" asp-route-compid="@Model.CompId" class="btn btn-sm btn-outline-primary disabled" style="width:auto;">Doc Report</a>
+									}
+								}*@
+							<a asp-action="CreateRegistrationFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-sm btn-warning" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-sm btn-outline-info">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/RegistrationFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/RegistrationFile.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+
+		$('#discountTableHeight').height(screen.height - 530);
+		$('#todaylistTable1').height(screen.height - 530);
+		$('#OpenItemTable1').height(screen.height - 530);
+		$('#OpenItemTableWidth').width(screen.width - 600);
+		//$('#todaylistTableWidth').width(screen.width - 600);
+		//$('.helpwidthTestMaster').height(screen.height - 350);
+		$('#discountTableHeight').hide();
+		var message = ""; var chvalue = 0;
+		$("#UpdateRecord").on('change', function () {
+			if ($("#UpdateRecord").val() == 0) {
+				chvalue = 1
+			}
+			else {
+				chvalue = 0
+			}
+			if (chvalue == 0) {
+				$('#todaylistTable1').hide();
+				$('#discountTableHeight').show();
+				//$('#DoctorTable1').height(screen.height - 600);
+			}
+			else {
+				$('#todaylistTable1').show();
+				$('#discountTableHeight').hide();
+				//$('#DoctorTable1').height(screen.height - 470);
+			}
+		});
+
+	</script>
+}

@@ -1,0 +1,31 @@
+﻿@model PurchaseOrderDetailViewModel
+@inject IFinancialRepository _mrepository; 
+<tr>
+	<td class="text-center">
+		@*<a href="#" id="Delbutton" type="button" onclick="deleteRow(this)" class="mt-1"><i class="fas fa-times fa-1x icon-color-red" ></i></a>*@
+		<input id="Delbutton" type="button" onclick="deleteRow(this)" value="Del" class="btn btn-info btn-sm" style="width:auto;" />
+	</td>
+	<td>
+		<input asp-for="TempSrNo" class="form-control " readonly />
+	</td>
+	<td>
+		<input asp-for="ItemCode" class="form-control  " hidden />
+		<input asp-for="SSItemName" class="form-control   OpenItemDetailRecord" onfocus="FindRowIndex(this); ItemSearchRecord();" />
+	</td>
+	<td>
+		<input asp-for="CasePcs" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); GrandTotalAmtCount();"/>
+	</td>
+	<td>
+		<select asp-for="UnitName" asp-items=" (await _mrepository.GetAllProductMeasurement()).OrderBy(x=> x.UnitName).Select(x=> new SelectListItem() { Text = x.UnitName, Value = x.UnitName.ToString() })" class="form-control  selectedItems">
+		</select>
+	</td>
+	<td>
+		<input asp-for="GSTPer" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+	</td>
+	<td>
+		<input asp-for="Rate" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);"/>
+	</td>
+	<td hidden>
+		<input asp-for="RecordType" title="RecordType" class="form-control   text-right" onfocus="FindRowIndex(this)" />
+	</td>
+</tr>

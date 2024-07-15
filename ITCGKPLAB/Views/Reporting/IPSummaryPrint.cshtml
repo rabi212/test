@@ -1,0 +1,136 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@inject IFinancialRepository _iFinancialRepository;
+@inject IGeneralMethod _grepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId > 0 ? Model.CompId : 1);
+	List<PatientViewModel> voucherList = new List<PatientViewModel>();
+	voucherList = await _iMasterRepository.PatientDoctorIPDateWise(Model.CompId, Model.DoctorAcCode, Model.FromDate, Model.UptoDate);
+
+	int memberCount = 1;
+	var headCodeList = voucherList.GroupBy(x => x.DoctorAcCode).Select(x => x.Key).ToList();
+	double totalAmt = 0; double disAmt = 0; double IPAmt = 0;
+	double totalAmtX = 0; double disAmtX = 0; double IPAmtX = 0;
+
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="branchCenter-details">
+		<h3>@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">IP Summary Report</h4>
+	</div>
+	<div class="invoice-to">
+		From Date : @Model.FromDate.ToString("dd/MM/yyyy")<br />
+		Upto Date : @Model.UptoDate.ToString("dd/MM/yyyy")
+	</div>
+	<table class="table-responsive-sm border fontsizebody">
+		<thead>
+			<tr class="text-left">
+				<th>S.No.</th>
+				<th>
+					Doctor's Name
+				</th>
+				<th>
+					Address
+				</th>
+				@if (Model.TotalAmtShow == true)
+				{
+					<th>
+						Total Amt
+					</th>
+				}				
+				<th>
+					IP Amt.
+				</th>
+				<th>
+					Dis.Amt.
+				</th>
+				<th>
+					Net IP
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in headCodeList)
+			{
+				totalAmt = 0; disAmt = 0; IPAmt = 0;
+				LedgerMasterViewModel head = await _iFinancialRepository.GetAddressMasterById(item.Value);
+				@foreach (var itemn in voucherList.Where(x => x.DoctorAcCode == item.Value))
+				{
+					totalAmt += Convert.ToDouble(itemn.TotalAmt); IPAmt += Convert.ToDouble(itemn.TotalIPAmt);
+					disAmt += Convert.ToDouble(itemn.DiscountType == "Doctor" ? itemn.DiscAmt : 0);
+				}
+				<tr>
+					<td>
+						@memberCount
+					</td>					
+					<td>
+						@(head.PartyName + " " + head.Address3)
+					</td>
+					<td>
+						@head.Address1
+					</td>
+					@if (Model.TotalAmtShow == true)
+					{
+						<td class="numeric-cell">
+							@((totalAmt).ToString("#0.00"))
+						</td>
+					}
+					
+					<td class="numeric-cell">
+						@((IPAmt).ToString("#0.00"))
+					</td>
+					<td class="numeric-cell">
+						@((disAmt).ToString("#0.00"))
+					</td>
+					<td class="numeric-cell">
+						@((IPAmt - disAmt).ToString("#0.00"))
+					</td>
+				</tr>
+				memberCount++;
+				totalAmtX += totalAmt; IPAmtX += IPAmt; disAmtX += disAmt;
+			}
+		<tr>
+			@{ string wordRs = await _grepository.Customizedwords((double)(IPAmtX - disAmtX));}
+			@if (Model.TotalAmtShow == true)
+			{
+				<td colspan="2">
+					<strong>Rs.(In words) : - @wordRs </strong>
+				</td>
+				<td class="numeric-cell">
+					<strong>Total Amt.</strong>
+				</td>
+				<td class="numeric-cell">
+					<strong> @(totalAmtX.ToString("#0.00"))</strong>
+				</td>
+			}
+			else
+			{
+				<td colspan="3">
+					<strong>Rs.(In words) : - @wordRs </strong>
+				</td>
+			}
+
+			<td class="numeric-cell">
+				<strong>@(IPAmtX.ToString("#0.00"))</strong>
+			</td>
+			<td class="numeric-cell">
+				<strong> @(disAmtX.ToString("#0.00"))</strong>
+			</td>
+			<td class="numeric-cell">
+				<strong>@((IPAmtX - disAmtX).ToString("#0.00"))</strong>
+			</td>
+		</tr>
+		</tbody>
+	</table>
+</body>
+</html>

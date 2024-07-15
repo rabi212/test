@@ -1,0 +1,225 @@
+﻿@model OpenSearchViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject ISettingRepository _repository;
+@inject IFinancialRepository _Irepository;
+@{
+	ViewData["Title"] = "Stock File";
+	CompanyDetailViewModel companyDetailViewModels = await _repository.GetCompanyById(Convert.ToInt32(ViewBag.CompId) > 0 ? Convert.ToInt32(ViewBag.CompId) : (int)((await userManager.GetUserAsync(User)).CompanyDetailId));
+	List<ItemStockViewModel> listItem = await _Irepository.SearchItemStockDateWise(Model.CompId, Model.ProdId,Model.ItemGroupId ,Model.PackId,Model.ItemName,Model.HSNCode,Model.UptoDate);
+	decimal amtX = 0; decimal netamtX = 0; decimal mrpamtx = 0;
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="ItemStockFile" asp-controller="Financial" method="post" autocomplete="off">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							@if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.TransCode).Select(x=> new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else
+							{
+								<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+								</select>
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="ProdId" asp-items=" (await _Irepository.GetAllProductCompany()).OrderBy(x => x.ProdName).Select(x => new SelectListItem() { Text = x.ProdName, Value = x.ProdId.ToString() })" class="form-control form-control-sm selectedItems" title="Select Product Company Name">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="ItemGroupId" asp-items=" (await _Irepository.GetAllItemGroup()).OrderBy(x => x.ItemGroupName).Select(x => new SelectListItem() { Text = x.ItemGroupName, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Select Item Group Name">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="PackId" asp-items=" (await _Irepository.GetALLPackingMaster()).OrderBy(x => x.PackName).Select(x => new SelectListItem() { Text = x.PackName, Value = x.PackId.ToString() })" class="form-control form-control-sm selectedItems" title="Select Item Packing Name">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="UptoDate" class="form-control form-control-sm" title="Upto Date" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="HSNCode" class="form-control form-control-sm" placeholder="Search HSN Code" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row CustomText">	
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<label>Rcd: <span class="text-danger">@listItem.Count</span></label>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10 text-right">
+							<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />
+							<input type="button" value="Print" class="btn btn-primary  btn-sm"
+								   onclick="printDiv()">
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>								
+			</div>
+		</form>
+		<div class="stateScroll" id="StocklistTable1">
+			<table class="table table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" title="Search Stock Record">
+				<thead class="RedDarkWhiteListHeader small">
+					<tr>
+						<th class="wdp-5">
+							Id
+						</th>
+						<th class="wdp-7">
+							Branch Code
+						</th>
+						<th>
+							Item's Name
+						</th>
+						<th class="wdp-5 text-right">
+							Opn. Pcs
+						</th>
+						<th class="wdp-5 text-right">
+							Pur. Pcs
+						</th>
+						<th class="wdp-5 text-right">
+							S.Rt.Pcs
+						</th>
+						<th class=" wdp-5 text-right">
+							Sale Pcs
+						</th>
+						<th class="wdp-5 text-right">
+							P.Rt Pcs
+						</th>
+						<th class="wdp-5 text-right">
+							Bal.Pcs
+						</th>
+						<th class="wdp-8 text-right">
+							MRP Amt.
+						</th>
+						<th class="wdp-8 text-right">
+							Amt.
+						</th>
+						<th class="wdp-8 text-right">
+							Net Amt.
+						</th>
+					</tr>
+				</thead>
+				<tbody >
+					@if (listItem.Any())
+					{
+						@foreach (var item in listItem)
+						{
+							decimal Balcase = (decimal)item.UnitCaseX > 0 ? (decimal)(item.DiscAmt / item.UnitCaseX) : (decimal) item.DiscAmt ;
+							decimal mrpamt = Math.Round(Balcase * item.MRP, 2);
+							decimal amt = Math.Round(Balcase * item.PurRate,2) ;
+							double gstrate = 1 + Convert.ToDouble(item.GSTPer) * 0.01;
+							decimal netamt = Math.Round(amt * Convert.ToDecimal(gstrate),2);
+							amtX = amtX + amt;
+							netamtX = netamtX + netamt;
+							mrpamtx = mrpamtx + mrpamt;
+							<tr>
+								<td>
+									@item.ItemCode
+								</td>
+								<td>
+									@item.Trancode
+								</td>
+								<td>
+									@item.ItemNamex
+								</td>
+								<td class=" text-right pr-1">
+									@(item.OpnPCS)
+								</td>								
+								<td class=" text-right pr-1">
+									@item.PurPCS
+								</td>		
+								<td class="text-right pr-1">
+									@item.SaleRtPCS	  
+								</td>				  
+								<td class="text-right pr-1">
+									@item.SalePCS	  
+								</td>				  
+								<td class="text-right pr-1">
+									@item.PurRtPCS	  
+								</td>				 		
+								<td class="text-right pr-1">
+									@item.DiscAmt	  
+								</td>				  
+								<td class="text-right pr-1">
+									@mrpamt
+								</td>
+								<td class="text-right pr-1">
+									@amt			  
+								</td>				  
+								<td class="text-right pr-1">
+									@netamt
+								</td>
+							</tr>
+						}
+						<tr class="bg-info text-white">
+							<td colspan="3" class="text-right pr-1">
+								Total
+							</td>
+							<td class="text-right  pr-1">
+								@(listItem.Sum(x => x.OpnPCS))
+							</td>
+							<td class="text-right  pr-1">
+								@(listItem.Sum(x => x.PurPCS))
+							</td>
+							<td class="text-right  pr-1">
+								@(listItem.Sum(x => x.SaleRtPCS))
+							</td>
+							<td class="text-right  pr-1">
+								@(listItem.Sum(x => x.SalePCS))
+							</td>
+							<td class="text-right  pr-1">
+								@(listItem.Sum(x => x.PurRtPCS))
+							</td>
+							<td class="text-right  pr-1">
+								@(listItem.Sum(x => x.DiscAmt))
+							</td>
+							<td class="text-right  pr-1">
+								@mrpamtx
+							</td>
+							<td class="text-right  pr-1">
+								@amtX
+							</td>
+							<td class="text-right  pr-1">
+								@netamtX
+							</td>
+						</tr>
+					}
+					else
+					{
+						<tr title="Stock File Search Records">
+							<td colspan="11">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$('#StocklistTable1').height(screen.height - 230);
+	</script>
+	<script>
+		function printDiv() {
+			var divContents = document.getElementById("StocklistTable1").innerHTML;
+			var a = window.open('', '', 'height=500, width=768');
+			a.document.write('<html>');
+			a.document.write('<body > <h1>Stock Print<br>');
+			a.document.write(divContents);
+			a.document.write('</body></html>');
+			a.document.close();
+			a.print();
+		}
+	</script>
+}

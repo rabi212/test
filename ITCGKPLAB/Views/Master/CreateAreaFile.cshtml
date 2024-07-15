@@ -1,0 +1,166 @@
+﻿@model AreaFileViewModel
+@inject IMasterRepository _mrepository;
+@inject ISettingRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Create Area";
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+	var softwareheader = softwareoption.Value;
+	List<AreaFileViewModel> areaFile = await _mrepository.GetAllArea(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1);
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomerGrade">
+		<h4 class="text-center text-white HeadingColorGreen">Create Area File</h4>
+		<form asp-action="CreateAreaFile" asp-controller="Master" method="post">
+			<input asp-for="Id" class="form-control" hidden  />
+			<input asp-for="CompIdA" class="form-control " value="@(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							@if (ViewBag.isSuccess == true)
+							{
+								<div class="alert alert-success alert-dismissible fade show" role="alert">
+									<strong>@ViewBag.message </strong>
+									<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+							}
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="Name" class="col-12 col-sm-12 col-md-2 col-lg-3 col-xl-3  control-label"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-9 col-xl-9"><input asp-for="Name" class="form-control " /></div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="DistId" class="col-12 col-sm-12 col-md-2 col-lg-3 col-xl-3  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-9 col-xl-9">
+							<select asp-for="DistId" asp-items=" (await _repository.GetAllDistrict(0)).OrderBy(x=> x.DistrictName).Select(x=> new SelectListItem() { Text = x.DistrictName, Value = x.DistId.ToString() })" class="form-control  CustCombo selectedItems ">
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+							<input id="NameX" class="form-control " placeholder="Search Name" onkeypress="SearchAreaFile()" />
+						</div>
+						<div class="col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success btn-sm" id="submit" hidden />
+							<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="CreateAreaFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</form>
+
+		<div class="stateScroll" id="DistrictTable1">
+			<table class="table table-striped table-bordered table-hover table-responsive-sm CancelTagVouch">
+				<thead class="text-dark">
+					<tr>
+						<th style="width:5%">
+							Id
+						</th>
+						<th>
+							Area's Name
+						</th>
+						<th>
+							District's Name
+						</th>
+						<th class="actionListButtonWidthGrade">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody class="tbodyitemgroup">
+					@if (areaFile.Count() > 0)
+					{
+						@foreach (var item in areaFile)
+						{
+							<tr>
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@item.Name
+								</td>
+								<td>
+									@item.DistrictDetail.DistrictName
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditAreaPolicy")).Succeeded)
+									{
+										<a asp-action="CreateAreaFile" asp-controller="Master" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteAreaPolicy")).Succeeded)
+									{
+										<a asp-action="DeleteAreaRecord" asp-controller="Master" asp-route-id=@item.Id onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+									</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="4">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$(document).ready(function () {
+			$('#DistrictName').focus();
+		});
+		$('#DistrictTable1').height(screen.height - 390);
+		function SearchAreaFile() {
+			var empobj = {
+				cmpid: $('#CompIdA').val(),
+				NameX: $('#NameX').val()
+			}
+			$.ajax({
+				url: "/Master/AreaDetailSearchRecord/",
+				method: "GET",
+				dataType: "json",
+				data: empobj,
+				contentType: "application/json",
+				success: function (result) {
+					var html = '';
+					$.each(result, function (key, item) {
+						html += '<tr class="small">';
+						html += '<td class="wdp-5" >' + item.id + '</td>';
+						html += '<td>' + item.name + '</td>';
+						html += '<td>' + item.districtDetail.districtName + '</td>';
+						html += '<td class="text-center">' +
+							'<a href="Area-Files?id=' + item.id + '"' + '<span><i class="far fa-edit mr-3 fa-2x icon-color-green"></i></span></a>' +
+							'</td >';
+						html += '</tr>';
+					});
+					$('.tbodyitemgroup').html(html);
+					// '<a href="AddressBook-Delete-File?id=' + item.ledgerMasterId + '"' +  '<span><i class="fas fa-times fa-2x icon-color-red"></i></span></a>' +
+				},
+				error: function (errormessage) {
+					console.error(errormessage.responseText);
+				}
+			});
+			return false;
+		}
+	</script>
+}

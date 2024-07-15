@@ -1,0 +1,1058 @@
+﻿@model PageSetupViewModel
+@inject IMasterRepository _repository;
+@inject ISettingRepository _mrepository;
+@inject IGeneralMethod igeneralmethod;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{
+	ViewData["Title"] = "PageSetupFile";
+	var softwareheader = softwareoption.Value;
+	//var pagedetail = await _repository.GetPageSetupById(Model.Id);
+	var Headerphotopath = "~/CenterHeader/" + (Model.ExitHeaderPhotoPath ?? "logo.jpg");
+	var Footerphotopath = "~/CenterFooter/" + (Model.ExitFooterPhotoPath ?? "logo.jpg");
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h3 class="text-center text-white bg-danger">Page Setup File</h3>
+		<form asp-action="PageSetupFile" asp-controller="Master" method="post" enctype="multipart/form-data">
+			<input asp-for="Id" class="form-control  form-control-sm CustomText" hidden />
+			@*<input asp-for="CompId" class="form-control form-control-sm" value="@(Model.Id > 0 ? Model.CompId :  ((int)(await userManager.GetUserAsync(User)).CompanyDetailId))" hidden />*@
+		<div class="form-row">
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+				<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+					@if (ViewBag.isSuccess == true)
+					{
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>@ViewBag.message </strong>
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+					}
+				</div>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						@if (!softwareheader.SoftwareMode)
+						{
+							<select asp-for="CompId" asp-items=" (await _mrepository.GetAllCompany(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString()})" class="form-control form-control-sm selectedItems">
+							</select>
+						}
+						else
+						{
+							if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="CompId" asp-items=" (await _mrepository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1 , Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems">
+								</select>
+							}
+							else
+							{
+								<select asp-for="CompId" asp-items=" (await _mrepository.GetAllCompany((int)(await userManager.GetUserAsync(User)).CompanyDetailId )).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1 , Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems">
+								</select>
+							}
+						}
+
+					</div>
+				</div>
+			</div>
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+				<ul class="nav nav-tabs badge-warning" id="myTab" role="tablist">
+					<li class="nav-item" role="presentation">
+						<a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Bill & Other Print</a>
+					</li>
+					<li class="nav-item" role="presentation">
+						<a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Bill Header & Footer </a>
+					</li>
+					<li class="nav-item" role="presentation">
+						<a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Report Hearder & Footer</a>
+					</li>
+					<li class="nav-item" role="presentation">
+						<a class="nav-link" id="barcode-tab" data-toggle="tab" href="#barcode" role="tab" aria-controls="barcode" aria-selected="false">Barcode Print</a>
+					</li>
+					<li class="nav-item" role="presentation">
+						<a class="nav-link" id="customfont-tab" data-toggle="tab" href="#customfont" role="tab" aria-controls="customfont" aria-selected="false">Test Report Fonts Style</a>
+					</li>
+				</ul>
+				<div class="tab-content" id="myTabContent">
+					<div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+						<div class="row mt-3">
+							<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+								<h4 class="text-success text-center">For Other Print (Pixel)</h4>
+								<div class="form-group row">
+									<label asp-for="LeftA" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="LeftA" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="RightA" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="RightA" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+								</div>
+								<div class="form-group row">
+									<label asp-for="TopA" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="TopA" class="form-control  form-control-sm CustomText text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="BottomA" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="BottomA" class="form-control  form-control-sm CustomText text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<label asp-for="CustomPapersizeA" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="CustomPapersizeA" asp-items="Html.GetEnumSelectList<CustomPapersize>()" class="form-control form-control-sm CustomText selectedItems">
+										</select>
+									</div>
+									<label asp-for="CustomOrientationA" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="CustomOrientationA" asp-items="Html.GetEnumSelectList<CustomOrientation>()" class="form-control form-control-sm CustomText selectedItems">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+								<h4 class="text-danger text-center">For Bill Print (Pixel)</h4>
+
+								<div class="form-group row">
+									<label asp-for="LeftB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="LeftB" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="RightB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="RightB" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+								</div>
+								<div class="form-group row">
+									<label asp-for="TopB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="TopB" class="form-control  form-control-sm CustomText text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="BottomB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<input asp-for="BottomB" class="form-control  form-control-sm CustomText text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<label asp-for="CustomPapersizeB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="CustomPapersizeB" asp-items="Html.GetEnumSelectList<CustomPapersize>()" class="form-control form-control-sm CustomText selectedItems">
+										</select>
+									</div>
+									<label asp-for="CustomOrientationB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="CustomOrientationB" asp-items="Html.GetEnumSelectList<CustomOrientation>()" class="form-control form-control-sm CustomText selectedItems">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 ">
+								<div class="form-group row">
+									<div class="form-check col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right ">
+										<input asp-for="PrintBillOneTwo" class="form-check-input" />
+										<label class="form-check-label" asp-for="PrintBillOneTwo">
+											Bill Print Double Copy
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 mt-3">
+							<div class="form-group row">
+								@*<label asp-for="PageHeaderB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>*@
+								<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+									<textarea asp-for="PageHeaderB" class="form-control form-control-sm CustomText PageDocumentContainerDetails" rows="5"></textarea>
+								</div>
+								<div class="form-check col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustomText">
+									<input asp-for="PrintHeaderB" class="form-check-input" />
+									<label class="form-check-label" asp-for="PrintHeaderB">
+										Bill Header
+									</label>
+								</div>
+
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<div class="form-group row">
+								@*<label asp-for="PageFooterB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>*@
+								<div class="col-12 col-sm-12 col-md-10  col-lg-10 col-xl-10">
+									<textarea asp-for="PageFooterB" class="form-control form-control-sm CustomText PageDocumentContainerDetails" rows="5"></textarea>
+								</div>
+								<div class="form-check col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustomText">
+									<input asp-for="PrintFooterB" class="form-check-input" />
+									<label class="form-check-label" asp-for="PrintFooterB">
+										Bill Footer
+									</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 mt-3">
+							<h4 class="text-danger text-center">For Test Report Print (Pixel)</h4>
+						</div>
+						
+						<div class="row">
+							<div class="col-7">
+								<div class="form-group row">
+									<div class="form-check col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 text-right ">
+										<input asp-for="QRCodePrint" class="form-check-input" />
+										<label class="form-check-label" asp-for="QRCodePrint">
+											Report Print QR Code
+										</label>
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 text-right ">
+										<input asp-for="BarCodePrint" class="form-check-input" />
+										<label class="form-check-label" asp-for="BarCodePrint">
+											Report Print Barcode
+										</label>
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 text-right ">
+										<input asp-for="BarcodeTop" class="form-check-input" />
+										<label class="form-check-label" asp-for="BarcodeTop">
+											Report Barcode Print Top
+										</label>
+									</div>									
+								</div>
+							</div>
+							<div class="col-5">
+								<div class="form-group row">
+									<label asp-for="FormulaDecimalPlace" class="col-form-label  col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5 "></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="FormulaDecimalPlace" class="form-control  form-control-sm text-sm-right " />
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 text-right ">
+										<input asp-for="TestFormulaApply" class="form-check-input" />
+										<label class="form-check-label" asp-for="TestFormulaApply">
+											CBC Formula Apply
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+								<div class="form-group row">
+									<label asp-for="MedReportType" class="col-form-label col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2  "></label>
+									<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+										<input asp-for="MedReportType" class="form-control  form-control-sm text-sm-right " />
+									</div>
+									<label asp-for="PagePrintLine" class="col-form-label  col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 "></label>
+									<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+										<input asp-for="PagePrintLine" class="form-control  form-control-sm text-sm-right " />
+									</div>
+									<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+										<input asp-for="OnePrintChart" class="form-control  form-control-sm text-sm-right " title="One Line Print Character" />
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 text-right ">
+										<input asp-for="PrintMedReport" class="form-check-input" />
+										<label class="form-check-label" asp-for="PrintMedReport">
+											Medical Image Print
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<div class="form-check col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5 text-right ">
+										<input asp-for="PatientRefNo" class="form-check-input" />
+										<label class="form-check-label" asp-for="PatientRefNo">
+											Ref.No. Auto
+										</label>
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-7 col-lg-7 col-xl-7 text-right ">
+										<input asp-for="PatientRefNoGroupwise" class="form-check-input" />
+										<label class="form-check-label" asp-for="PatientRefNoGroupwise">
+											Group Wise Ref.No. Auto
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-7 col-lg-7 col-xl-7">
+								<div class="form-group row">
+									<label asp-for="LeftR" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="LeftR" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="RightR" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="RightR" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="TopR" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 "></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="TopR" class="form-control  form-control-sm  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="BottomR" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 "></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="BottomR" class="form-control  form-control-sm  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+								<div class="form-group row">
+									<label asp-for="CustomPapersizeR" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 "></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="CustomPapersizeR" asp-items="Html.GetEnumSelectList<CustomPapersize>()" class="form-control form-control-sm selectedItems">
+										</select>
+									</div>
+									<label asp-for="CustomOrientationR" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4  "></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="CustomOrientationR" asp-items="Html.GetEnumSelectList<CustomOrientation>()" class="form-control form-control-sm selectedItems">
+										</select>
+									</div>
+								</div>
+							</div>
+
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+								<div class="form-group row">
+									@*<label asp-for="PageFooterB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>*@
+									<div class="col-12 col-sm-12 col-md-10  col-lg-10 col-xl-10">
+										<input asp-for="ExitHeaderPhotoPath" class="form-control form-control-sm" hidden />
+										<input asp-for="HeaderPhotoFile" class="form-control form-control-sm" hidden />
+										<label asp-for="HeaderPhoto" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-form-label col-form-label-sm"></label>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+											<div class="custom-file">
+												<input asp-for="HeaderPhoto" class="form-control form-control-sm custom-file-input" accept="image/jpeg, image/jpg, image/png, image/bmp" onchange="LoadImage(this,document.getElementById('user_img'))" />
+												<label class="custom-file-label">Choose File------</label>
+											</div>
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+											<img id="user_img" src="@Headerphotopath" style="width:100%;height:100px; border:solid;" asp-append-version="true" />
+										</div>
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustomText">
+										<input asp-for="ReportHeaderPrint" class="form-check-input" />
+										<label class="form-check-label" asp-for="ReportHeaderPrint">
+											Report Header
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+								<div class="form-group row">
+									@*<label asp-for="PageFooterB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>*@
+									<div class="col-12 col-sm-12 col-md-10  col-lg-10 col-xl-10">
+										<input asp-for="ExitFooterPhotoPath" class="form-control form-control-sm" hidden />
+										<input asp-for="FooterPhotoFile" class="form-control form-control-sm" hidden />
+										<label asp-for="FooterPhoto" class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-form-label col-form-label-sm"></label>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+											<div class="custom-file">
+												<input asp-for="FooterPhoto" class="form-control form-control-sm custom-file-input" accept="image/jpeg, image/jpg, image/png, image/bmp" onchange="LoadImage(this,document.getElementById('user_img1'))" />
+												<label class="custom-file-label">Choose File------</label>
+											</div>
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+											<img id="user_img1" src="@Footerphotopath" style="width:100%;height:100px; border:solid;" asp-append-version="true" />
+										</div>
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustomText">
+										<input asp-for="ReportFooterPrintA" class="form-check-input" />
+										<label class="form-check-label" asp-for="ReportFooterPrintA">
+											Report Footer First
+										</label>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+								<div class="form-group row">
+									@*<label asp-for="PageFooterB" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustLabel"></label>*@
+									<div class="col-12 col-sm-12 col-md-10  col-lg-10 col-xl-10">
+										<textarea asp-for="ReportFooterB" class="form-control form-control-sm CustomText PageDocumentContainerDetails" rows="5"></textarea>
+									</div>
+									<div class="form-check col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 CustomText">
+										<input asp-for="ReportFooterPrintB" class="form-check-input" />
+										<label class="form-check-label" asp-for="ReportFooterPrintB">
+											Report Footer Second
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="tab-pane fade" id="barcode" role="tabpanel" aria-labelledby="barcode-tab">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 mt-3">
+							<h4 class="text-danger text-center">For BarCode Print (Pixel)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-7 col-lg-7 col-xl-7">
+								<div class="form-group row">
+									<label asp-for="LeftC" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="LeftC" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="RightC" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="RightC" class="form-control  form-control-sm text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="TopC" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 "></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="TopC" class="form-control  form-control-sm  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+									<label asp-for="BottomC" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 "></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<input asp-for="BottomC" class="form-control  form-control-sm  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+								<div class="form-group row">
+									<label asp-for="CustomPapersizeC" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 "></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="CustomPapersizeC" asp-items="Html.GetEnumSelectList<CustomPapersize>()" class="form-control form-control-sm selectedItems">
+										</select>
+									</div>
+									<label asp-for="CustomOrientationC" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4  "></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="CustomOrientationC" asp-items="Html.GetEnumSelectList<CustomOrientation>()" class="form-control form-control-sm selectedItems">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="tab-pane fade" id="customfont" role="tabpanel" aria-labelledby="customfont-tab">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 mt-2">
+							<h4 class="text-danger text-center">Patient Header</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+								<div class="form-group row">
+									<label asp-for="HeaderFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="HeaderSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="HeaderStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="HeaderWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+									<label asp-for="HeaderColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="HeaderDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12">
+							<div  class="form-group row">
+								<div class="col-10"><h4 class="text-primary text-center">Test Header</h4></div>
+								<div class="form-check col-2 text-right ">
+									<input asp-for="TestHeaderTop" class="form-check-input" />
+									<label class="form-check-label" asp-for="TestHeaderTop">
+										Test Header Top
+									</label>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+								<div class="form-group row">
+									<label asp-for="HeaderSecondFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderSecondFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="HeaderSecondSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderSecondSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="HeaderSecondStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderSecondStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="HeaderSecondWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderSecondWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+									<label asp-for="HeaderSecondColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderSecondColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									
+									<label asp-for="HeaderSecondDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1"></label>
+									<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+										<select asp-for="HeaderSecondDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-success text-center">Report Header</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="ReportHeaderFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="ReportHeaderFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="ReportHeaderSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="ReportHeaderSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="ReportHeaderLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="ReportHeaderLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="ReportHeaderStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="ReportHeaderStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="ReportHeaderWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="ReportHeaderWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="ReportHeaderColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="ReportHeaderColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="ReportHeaderDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="ReportHeaderDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-dark text-center">Test Lock Type (N)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeNFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeNLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeNLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeNStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeNWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeNColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-danger text-center">Test Lock Type (L)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeLFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeLFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeLSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeLSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeLLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeLLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeLStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeLStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeLWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeLWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeLColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeLColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeLDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeLDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-success text-center">Test Lock Type (M)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeMFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeMFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeMSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeMSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeMLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeMLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeMStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeMStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeMWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeMWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeMColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeMColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeMDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeMDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-primary text-center">Test Lock Type (Y)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeYFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeYFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeYSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeYSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeYLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeYLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeYStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeYStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeYWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeYWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeYColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeYColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeYDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeYDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-dark text-center">Test Lock Type (S)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeSFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeSFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeSSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeSSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeSLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeSLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeSStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeSStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeSWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeSWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeSColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeSColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeSDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeSDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-danger text-center">Test Lock Type (B)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeBFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeBFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeBSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeBSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeBLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeBLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeBStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeBStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeBWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeBWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeBColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeBColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeBDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeBDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-success text-center">Test result value (Normal)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeNormalFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNormalFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNormalSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNormalSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeNormalLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeNormalLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNormalStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeNormalStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNormalWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeNormalWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeNormalColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNormalColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNormalDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeNormalDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-danger text-center">Test result value (Abnormal)</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeUnnormalFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeUnnormalFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeUnnormalSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeUnnormalSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeUnnormalLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeUnnormalLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeUnnormalStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeUnnormalStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeUnnormalWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeUnnormalWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeUnnormalColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeUnnormalColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeUnnormalDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeUnnormalDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<h4 class="text-secondary text-center">Test Range</h4>
+						</div>
+						<div class="row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeRangeFont" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeRangeFont" asp-items=" (await _mrepository.GetAllFontCustom(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Name.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeNSize" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeRangeSize" asp-items=" (await igeneralmethod.StoreFontSize()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeRangeLineHeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeRangeLineHeight" asp-items=" (await igeneralmethod.StoreLineHeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Size">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeRangeStyle" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+										<select asp-for="TestLockTypeRangeStyle" asp-items=" (await igeneralmethod.StoreFontStyle()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Style">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeRangeWeight" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2"></label>
+									<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+										<select asp-for="TestLockTypeRangeWeight" asp-items=" (await igeneralmethod.StoreFontWeight()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Weights">
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+								<div class="form-group row">
+									<label asp-for="TestLockTypeRangeColor" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeRangeColor" asp-items=" (await igeneralmethod.StoreFontColor()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Color">
+										</select>
+									</div>
+									<label asp-for="TestLockTypeRangeDecorate" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4"></label>
+									<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+										<select asp-for="TestLockTypeRangeDecorate" asp-items=" (await igeneralmethod.StoreFontDecorate()).Select(x => new SelectListItem() { Text = x.Text, Value = x.Value.ToString() })" class="form-control form-control-sm selectedItems" title="Fonts Decoration">
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+				<input type="submit" value="Save" class="btn btn-success btn-sm" />
+				<a asp-action="PageSetupList" asp-controller="Master" class="btn btn-outline-info btn-sm">Cancel</a>
+			</div>
+		</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+	<script>
+		$(document).ready(function () {
+			$('.PageDocumentContainerDetails').summernote({
+				toolbar: [
+					['style', ['style']],
+					['font', ['bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear']],
+					['fontsize', ['fontsize']],
+					['fontname', ['fontname']],
+					['color', ['color']],
+					['para', ['ul', 'ol', 'paragraph']],
+					['table', ['table']],
+					['insert', ['link', 'picture', 'video']],
+					['view', ['fullscreen', 'codeview', 'help']],
+				],
+				height: 150
+			});
+		});
+	</script>
+
+}

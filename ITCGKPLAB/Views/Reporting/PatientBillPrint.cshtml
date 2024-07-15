@@ -1,0 +1,317 @@
+﻿@model PatientViewModel
+@inject IMasterRepository _repository;
+@inject ISettingRepository _srepository;
+@inject IGeneralMethod _grepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(((int)(await userManager.GetUserAsync(User)).CompanyDetailId));
+	string wordAmt = await _grepository.Customizedwords((double)Model.TotalAmt);
+	PageSetupViewModel pagedetails = await _repository.GetPageSetuppPrintComp(CompanyDetailViewModel.Id);
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body style="font-size:0.65rem;">
+	@if (pagedetails.PrintBillOneTwo)
+	{
+		<table class="table-responsive table-borderless " style="border-top-style: none; border-left-style: none; border-right-style: none; border-bottom-style: none; ">
+			<tbody>
+				<tr>
+					<td class=" noBorderBody" style="text-align:center;border-bottom:1px solid black;">
+						@if (pagedetails.PrintHeaderB)
+						{
+							@Html.Raw(pagedetails.PageHeaderB)<br />
+						}
+						<h5 style="margin-bottom:-3px;text-decoration:underline"><strong>@CompanyDetailViewModel.CompName</strong> </h5>
+						@CompanyDetailViewModel.Address1<br />
+						@CompanyDetailViewModel.Address2<br />
+						Email :- @CompanyDetailViewModel.EmailAddress<br />
+						Cell No. :- @CompanyDetailViewModel.MobileNo<br />
+						<strong>Conter Copy</strong><span> Time :- @Model.STime</span>
+					</td>
+					<td class=" noBorderBody" style="text-align:center;border-bottom:1px solid black;">
+						@if (pagedetails.PrintHeaderB)
+						{
+							@Html.Raw(pagedetails.PageHeaderB)<br />
+						}
+						<h5 style="margin-bottom:-3px;text-decoration:underline"><strong>@CompanyDetailViewModel.CompName</strong> </h5>
+						@CompanyDetailViewModel.Address1<br />
+						@CompanyDetailViewModel.Address2<br />
+						Email :- @CompanyDetailViewModel.EmailAddress<br />
+						Cell No. :- @CompanyDetailViewModel.MobileNo<br />
+						<strong>Patient Copy</strong><span> Time :- @Model.STime</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="table-responsive table-borderless " style="border-top-style: none; border-left-style: none; border-right-style: none; border-bottom-style: none;margin-top:0px;">
+			<tbody>			
+				<tr>
+					<td class="noBorderBody wdp-49">						
+						Rpt.No. :- <b>@Model.RefNo     Date : @Model.SDate</b><br />
+						Pt. Name   :- <b> @Model.TitleName @Model.Name</b> Cell No.   @Model.MobileNo <br />
+						Age/Sex :- <b> @((int)Model.Age) @Model.AgeType / @Model.Sex</b><br />
+						Ref.By  :- Dr.  @Model.DrName
+					</td>
+					<td class="wdp-2"></td>
+					<td class="noBorderBody wdp-49">						
+						Rpt.No. :- <b>@Model.RefNo     Date : @Model.SDate</b><br />
+						Pt. Name   :- <b> @Model.TitleName @Model.Name</b> Cell No.   @Model.MobileNo <br />
+						Age/Sex :- <b> @((int)Model.Age) @Model.AgeType / @Model.Sex</b><br />
+						Ref.By  :- Dr.  @Model.DrName
+					</td>
+				</tr>				
+			</tbody>
+		</table>
+
+		<table class="table-responsive-sm border" style="margin-top:-0px;">
+			<thead>
+				<tr class="text-left">
+					<th class="wdp-3">Sr.No.</th>
+					<th class="wdp-34">Investigation</th>
+					<th class="wdp-12" style="padding-right:15px;justify-content:right;">Amount</th>
+					<th class="wdp-2"></th>
+					<th class="wdp-3">Sr.No.</th>
+					<th class="wdp-34">Investigation</th>
+					<th class="wdp-12" style="padding-right:15px;justify-content:right;">Amount</th>
+				</tr>				
+			</thead>
+			<tbody>
+				@foreach (var item in Model.PatientDetailsMasterViewModels)
+				{
+					<tr class="noBorder">
+						<td class="wdp-3" style="padding-left:10px;">@item.TempSrNo</td>
+						<td class="wdp-34" style="padding-left:5px;">@item.TestMasterViewModels.TestCode</td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;">@item.Rate</td>
+						<td class="wdp-2"></td>
+						<td class="wdp-3" style="padding-left:10px;">@item.TempSrNo</td>
+						<td class="wdp-34" style="padding-left:5px;">@item.TestMasterViewModels.TestCode</td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;">@item.Rate</td>
+					</tr>
+				}				
+			</tbody>
+		</table>
+		<table class="table-responsive-sm">
+			<tbody>
+				<tr>
+					<td class="wdp-27"> Pay Mode :- @Model.PaymentType</td>
+					<td class="numeric-cell wdp-10 ">Total Amt.:- </td>
+					<td class="numeric-cell wdp-12" style="padding-right:15px;">@Model.TotalAmt</td>
+					<td class="wdp-2"></td>
+					<td class="wdp-27"> Pay Mode :- @Model.PaymentType</td>
+					<td class="numeric-cell wdp-10 ">Total Amt.:- </td>
+					<td class="numeric-cell wdp-12" style="padding-right:15px;">@Model.TotalAmt</td>
+				</tr>
+				@if (Model.DiscAmt > 0)
+				{
+					<tr>
+						<td class="wdp-27"></td>
+						<td class="numeric-cell wdp-10">Disc. Amt.:- </td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;">@Model.DiscAmt</td>
+						<td class="wdp-2"></td>
+						<td class="wdp-27"></td>
+						<td class="numeric-cell wdp-10">Disc. Amt.:- </td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;">@Model.DiscAmt</td>
+					</tr>
+				}
+				<tr>
+					<td class="wdp-27"> Rs.:- @wordAmt</td>
+					<td class="numeric-cell wdp-10"><b>Paid Amt.:-</b>  </td>
+					<td class="numeric-cell wdp-12" style="padding-right:15px;"><b>@Model.PaidAmt</b></td>
+					<td class="wdp-2"></td>
+					<td class="wdp-27"> Rs.:- @wordAmt</td>
+					<td class="numeric-cell wdp-10"><b>Paid Amt.:-</b>  </td>
+					<td class="numeric-cell wdp-12" style="padding-right:15px;"><b>@Model.PaidAmt</b></td>
+				</tr>
+				@if (Model.BalAmt > 0)
+				{
+					<tr>
+						<td class="wdp-27"></td>
+						<td class="numeric-cell wdp-10"><b>Bal. Amt.:-</b> </td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;"><b>@Model.BalAmt</b></td>
+						<td class="wdp-2"></td>
+						<td class="wdp-27"></td>
+						<td class="numeric-cell wdp-10"><b>Bal. Amt.:-</b> </td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;"><b>@Model.BalAmt</b></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		<br />
+		<table class="table-responsive-sm table-borderless " style="border-top-style: none; border-left-style: none; border-right-style: none; border-bottom-style: none; ">
+			<tbody>
+				<tr style="margin-top:15px;">
+					<td class="noBorderBody wdp-39">
+						@if (Model.Remark != null)
+						{
+							<p style="margin-top:-10px;">Remarks : - @Model.Remark</p><br />
+						}
+						@if (pagedetails.PrintFooterB)
+						{
+							@Html.Raw(pagedetails.PageFooterB)
+						}
+						<h6><b>@User.Identity.Name</b></h6>
+					</td>
+					<td class="noBorderBody text-right wdp-10">
+						<h6><b>Signature</b></h6>
+					</td>
+					<td class="wdp-2"></td>
+					<td class="noBorderBody wdp-39">
+						@if (Model.Remark != null)
+						{
+							<p style="margin-top:-10px;">Remarks : - @Model.Remark</p><br />
+						}
+						@if (pagedetails.PrintFooterB)
+						{
+							@Html.Raw(pagedetails.PageFooterB)
+						}
+						<h6><b>@User.Identity.Name</b></h6>
+					</td>
+					<td class="noBorderBody text-right wdp-10">
+						<h6><b>Signature</b></h6>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	}
+	else
+	{
+		<table class="table-responsive table-borderless " style="border-top-style: none; border-left-style: none; border-right-style: none; border-bottom-style: none; ">
+			<tbody>
+				<tr>
+					<td class=" noBorderBody" style="text-align:center;border-bottom:1px solid black;">
+						@if (pagedetails.PrintHeaderB)
+						{
+							@Html.Raw(pagedetails.PageHeaderB)<br />
+						}
+						<h5 style="margin-bottom:-3px;text-decoration:underline"><strong>@CompanyDetailViewModel.CompName</strong> </h5>
+						@CompanyDetailViewModel.Address1<br />
+						@CompanyDetailViewModel.Address2<br />
+						Email :- @CompanyDetailViewModel.EmailAddress<br />
+						Cell No. :- @CompanyDetailViewModel.MobileNo<br />
+						<strong>Patient Copy</strong><span> Time :- @Model.STime</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="table-responsive table-borderless " style="border-top-style: none; border-left-style: none; border-right-style: none; border-bottom-style: none;margin-top:0px;">
+			<tbody>
+				<tr>
+					<td class="noBorderBody text-center" colspan="3">	<barcode content="@Model.VNo" height="25" width="200" /></td>
+				</tr>
+				<tr>
+					<td class="noBorderBody wdp-75">
+						Rpt.No. :- <b>@Model.RefNo     UID @Model.VNo</b>
+					</td>
+					<td class="noBorderBody wdp-10 text-right">
+						Date :-
+					</td>
+					<td class="noBorderBody wdp-15">
+						<b>@Model.SDate </b>
+					</td>
+				</tr>
+				<tr>
+					<td class="noBorderBody wdp-75">
+						Pt. Name   :- <b> @Model.TitleName @Model.Name</b> Cell No.   @Model.MobileNo
+					</td>
+					<td class="noBorderBody wdp-10 text-right">
+						Age/Sex :-
+					</td>
+					<td class="noBorderBody wdp-15">
+						<b> @((int)Model.Age) @Model.AgeType / @Model.Sex</b>
+					</td>
+				</tr>
+				<tr>
+					<td class="noBorderBody wdp75">
+						Ref.By  :- Dr.  @Model.DrName
+					</td>
+					<td class="noBorderBody wdp-10 text-right">
+						Time :-
+					</td>
+					<td class="noBorderBody wdp-15">
+						@Model.RTime
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<table class="table-responsive-sm border" style="margin-top:-0px;">
+			<thead>
+				<tr class="text-left">
+					<th class="wdp-3">Sr.No.</th>
+					<th class="wdp-80">Investigation</th>
+					<th class="wdp-12" style="padding-right:15px;justify-content:right;">Amount</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var item in Model.PatientDetailsMasterViewModels)
+				{
+					<tr class="noBorder">
+						<td class="wdp-3" style="padding-left:10px;">@item.TempSrNo</td>
+						<td class="wdp-80" style="padding-left:5px;">@item.TestMasterViewModels.TestCode</td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;">@item.Rate</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		<table class="table-responsive-sm">
+			<tbody>
+				<tr>
+					<td class="wdp-73"> Pay Mode :- @Model.PaymentType</td>
+					<td class="numeric-cell wdp-10 ">Total Amt.:- </td>
+					<td class="numeric-cell wdp-12" style="padding-right:15px;">@Model.TotalAmt</td>
+
+				</tr>
+				@if (Model.DiscAmt > 0)
+				{
+					<tr>
+						<td class="wdp-73"></td>
+						<td class="numeric-cell wdp-10">Disc. Amt.:- </td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;">@Model.DiscAmt</td>
+					</tr>
+				}
+				<tr>
+					<td class="wdp-73"> Rs.:- @wordAmt</td>
+					<td class="numeric-cell wdp-10"><b>Paid Amt.:-</b>  </td>
+					<td class="numeric-cell wdp-12" style="padding-right:15px;"><b>@Model.PaidAmt</b></td>
+				</tr>
+				@if (Model.BalAmt > 0)
+				{
+					<tr>
+						<td class="wdp-73"></td>
+						<td class="numeric-cell wdp-10"><b>Bal. Amt.:-</b> </td>
+						<td class="numeric-cell wdp-12" style="padding-right:15px;"><b>@Model.BalAmt</b></td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		<br />
+		<table class="table-responsive-sm table-borderless " style="border-top-style: none; border-left-style: none; border-right-style: none; border-bottom-style: none; ">
+			<tbody>
+				<tr style="margin-top:15px;">
+					<td class="noBorderBody">
+						@if (Model.Remark != null)
+						{
+							<p style="margin-top:-10px;">Remarks : - @Model.Remark</p><br />
+						}
+						@if (pagedetails.PrintFooterB)
+						{
+							@Html.Raw(pagedetails.PageFooterB)
+						}
+						<h6><b>@User.Identity.Name</b></h6>
+					</td>
+					<td class="noBorderBody text-right">
+						<h6><b>Signature</b></h6>
+					</td>
+
+				</tr>
+			</tbody>
+		</table>
+	}
+</body>
+</html>

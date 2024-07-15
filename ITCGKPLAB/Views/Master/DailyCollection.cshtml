@@ -1,0 +1,144 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _repository
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	ViewData["Title"] = "Daily Collection";
+	var softwareheader = softwareoption.Value;
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();	
+}
+<div class="CustomBorderRelative mt-1">
+	<div class="CustomerNewUser">
+		<h3 class="text-center text-white HeadingColorRed">Daily Collection Print</h3>
+		<form asp-action="DailyCollection" asp-controller="Master" method="post" autocomplete="off">
+			<div class="form-row">
+
+				@*<input asp-for="UserCode" class="form-control form-control-sm CustomText" value="@((await userManager.GetUserAsync(User)).Id)"  hidden/>*@
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="CompId" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							@if (!softwareheader.SoftwareMode)
+							{
+								@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.Id).Select(x=> new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									</select>
+								}
+							}
+							else
+							{
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									</select>
+								}
+							}
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="UserCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="UserCode" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm CustomText selectedItems" title="User's Name'">
+									<option value="ALL">ALL</option>
+								</select>
+							}
+							else
+							{
+								if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+								{
+									<select asp-for="UserCode" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == Model.CompId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm CustomText selectedItems" title="User's Name'">
+										<option value="ALL">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="UserCode" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm CustomText selectedItems" title="User's Name'">
+									</select>
+								}
+							}
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="TestGroupName" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<select asp-for="TestGroupName" asp-items=" (await _mrepository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.ShortName.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="AgentAcCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<select asp-for="AgentAcCode" asp-items=" (await _mrepository.GetAllAgent(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DoctorAcCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<select asp-for="DoctorAcCode" asp-items=" (await _mrepository.GetAllDoctorMasterLedger(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name + ' ' + x.Eduction, Value = x.Id.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PaymentMode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<select asp-for="PaymentMode" asp-items="Html.GetEnumSelectList<PayMode>()" class="form-control form-control-sm CustomText selectedItems" title="Payment Type">
+								<option value="ALL">ALL</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DrInLab" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<select asp-for="DrInLab" asp-items="  (await _mrepository.GetDoctorMasterLabList(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems CustomText" title="Investigation By Doctor Details">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+						<div class="checkbox col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 text-right text-danger CustLabel">
+							<label>
+								<input asp-for="GroupTypeReport" />
+								@Html.DisplayNameFor(model => model.GroupTypeReport)
+							</label>
+						</div>
+					</div>					
+					<div class="form-group row">
+						<label asp-for="FromDate" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input type="date" asp-for="FromDate" class="form-control form-control-sm CustomText" />
+						</div>
+						<label asp-for="UptoDate" class="col-12 col-sm-12 col-md-2 col-lg-3 col-xl-3 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-4 col-lg-3 col-xl-3">
+							<input type="date" asp-for="UptoDate" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<button type="submit" class="btn btn-success btn-sm" formtarget="_blank">Print</button>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

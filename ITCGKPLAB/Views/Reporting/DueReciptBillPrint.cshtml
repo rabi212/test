@@ -1,0 +1,93 @@
+﻿@model PatientDueReciptViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _mrepository ;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject IGeneralMethod _method;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel MainBranch = await _srepository.GetCompanyById((int)((await userManager.GetUserAsync(User)).CompanyDetailId));
+	double amt = Model.TotalAmt > 0 ? (double)Model.TotalAmt : (double)Model.TotalAmt;
+}
+
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div>
+		<h3 class="branchCenter-details">Due Receipt Bill</h3>
+	</div>
+	<table class="table-responsive-sm border">
+		<thead>
+			<tr class="text-left">
+				<td colspan="4" class="wdp-60 txtcenter">
+					<h3 >@MainBranch.CompName</h3><br />
+					<p>@MainBranch.Address1  @MainBranch.Address2</p>
+					<p>Mob.No. @MainBranch.MobileNo   Ph.No. @MainBranch.PhoneNo  </p>
+				</td>
+				<td colspan="4" class="wdp-40">
+					<h6 class="border-bottom text-center"><b>ORIGIANL</b></h6>
+					<p class="border-bottom"> Date :- @Model.VDate</p><br />
+					<p>UID : @Model.VNo</p>
+				</td>
+			</tr>
+		</thead>
+		<tbody>			
+				<tr>
+					<td colspan="6">
+						A/c name : @(Model.PatientViewModel.Name + " " + (int)Model.PatientViewModel.Age + " " + Model.PatientViewModel.AgeType + " / " + Model.PatientViewModel.Sex ) <br />
+					</td>
+					<td colspan="2" class="numeric-cell ">
+						Amt : @(Model.TotalAmt)						
+					</td>				
+				</tr>
+					@if (Model.DiscAmt > 0)
+					{
+						<tr>
+							<td colspan="6">
+							</td>
+							<td colspan="2" class="numeric-cell">
+								Disc.Amt : @(Model.DiscAmt)
+							</td>
+						</tr>
+					}
+						@if (Model.PaidAmt > 0)
+						{
+							<tr>
+								<td colspan="6">
+								</td>
+								<td colspan="2" class="numeric-cell">
+									Paid Amt : @(Model.PaidAmt)
+								</td>
+							</tr>
+						}
+			<tr class="border-top">
+				<td colspan="8" class="numeric-cell">
+					<b>Rs. : @(Model.TotalAmt > 0 ? @Model.TotalAmt : @Model.TotalAmt)</b>
+				</td>
+			</tr>
+			<tr class="border-top">
+				<td colspan="8">
+					<b>Rupees :- @(await _method.Customizedwords(Convert.ToDouble(amt)))</b>
+				</td>
+			</tr>
+			<tr class="border-top">
+				<td colspan="8">
+					<b>Vech Desc :</b> <span>@Model.Remark</span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="invoice-to">
+		<h5>Receiver Signature</h5>
+	</div>
+	<div class="invoice-details">
+		<h5>For : @MainBranch.CompName</h5>
+		<h5>Authorised Signature</h5>
+	</div>
+</body>
+</html>
+

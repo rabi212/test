@@ -1,0 +1,153 @@
+﻿@model IEnumerable<TestMasterViewModel>
+@inject IMasterRepository _repository;
+@inject ISettingRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Search Test File";
+	var softwareheader = softwareoption.Value;
+	TestGroupMasterViewModel modelg = await _repository.GetTestGroupMasterById(ViewBag.TestGId);
+	ReportGroupViewModel modelgg = await _repository.GetReportGroupMasterById(ViewBag.ReportId);
+	int countno = 0;
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="ListSearchTestFile" asp-controller="Master" method="get" autocomplete="off">
+			<div class="row">
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					@if (!softwareheader.SoftwareMode)
+					{
+							<select id="CompId1" name="CompId1" asp-items=" (await _mrepository.GetAllCompany(0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id + ' ' + x.CompName + ' '  + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems">
+							</select>					
+					}
+					else
+					{
+						@if (User.IsInRole("SuperAdmin"))
+						{
+							<select id="CompId1" name="CompId1" asp-items=" (await _mrepository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems">
+							</select>
+						}
+						else
+						{
+							<select id="CompId1" name="CompId1" asp-items=" (await _mrepository.GetAllCompany(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems">
+							</select>
+						}
+					}
+					
+				</div>
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+					<select id="ReportId" name="ReportId" asp-items=" (await _repository.GetAllReportGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control ">
+						@if (ViewBag.ReportId > 0)
+						{
+							<option value="@ViewBag.ReportId">@modelgg.Name</option>
+							<option value="0">ALL</option>
+						}
+						else
+						{
+							<option value="0">ALL</option>
+						}
+					</select>
+				</div>
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+					<select id="TestGId" name="TestGId" asp-items=" (await _repository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ?(int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control ">
+						@if (ViewBag.TestGId > 0)
+						{
+							<option value="@ViewBag.TestGId">@modelg.Name</option>
+							<option value="0">ALL</option>
+						}
+						else
+						{
+							<option value="0">ALL</option>
+						}
+					</select>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					<input name="TestName" id="TestName" value="@(ViewBag.TestName??ViewBag.TestName)" placeholder="Search Test Code" />
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 text-right">
+					<input type="submit" value="Search" class="btn btn-sm btn-secondary" />
+					<a asp-action="CreateTestFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm">Cancel</a>
+				</div>
+			</div>
+		</form>
+
+		<div class="stateScroll boxcolorback" id="TestSubMasterTable1">
+			<table class="table table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="TestSubMasterWidth">
+				<thead class="RedDarkWhiteListHeader small" id="tthead">
+					<tr>
+						<th hidden>
+							Id
+						</th>
+						<th>
+							No.
+						</th>
+						<th>
+							Test's Name
+						</th>
+						<th class="actionListButtonWidthAgent">Action</th>
+						<th>
+							Report's Name
+						</th>
+						<th>
+							Test's Group Name
+						</th>
+						<th class="text-right">
+							Rate
+						</th>
+						<th class="text-right">
+							Mode
+						</th>
+
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var item in Model)
+					{
+						countno++;
+						<tr>
+							<td hidden>
+								@Html.DisplayFor(modelItem => item.Id)
+							</td>
+							<td>
+								@countno
+							</td>
+							<td>
+								@Html.DisplayFor(modelItem => item.TestCode)
+							</td>
+							<td class="text-center actionListButtonWidthAgent">
+								@if ((await authorizationService.AuthorizeAsync(User, "AddEditTestPolicy")).Succeeded)
+								{
+									<a asp-action="CreateTestFile" asp-controller="Master" asp-route-id=@item.Id asp-route-isSuccess="false"><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+								}
+								@if ((await authorizationService.AuthorizeAsync(User, "DeleteTestPolicy")).Succeeded)
+								{
+									<a asp-action="DeleteTestRecord" asp-controller="Master" asp-route-id=@item.Id onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+								}
+							</td>
+							<td>
+								@Html.DisplayFor(modelItem => item.ReportGroupViewModel.Name)
+							</td>
+							<td>
+								@Html.DisplayFor(modelItem => item.TestGroupMasterViewModel.Name)
+							</td>
+							<td class="text-right">
+								<b>	@Html.DisplayFor(modelItem => item.Rate)</b>
+							</td>
+							<td class="text-right">
+								@Html.DisplayFor(modelItem => item.documentType)
+							</td>
+							
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$('#TestSubMasterTable1').height(screen.height - 200);
+	</script>
+
+}

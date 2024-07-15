@@ -1,0 +1,28 @@
+﻿<div class="container py-5 text-center">
+	@if (ViewBag.ErrorDetailsPath == null)
+	{
+		<h3>
+			An occured while processing your request
+			The support team is notified and we are working on the fix
+		</h3>
+		<h5>Please contact us on InfotechGkp@gmail.com</h5>
+		<hr />
+		<h3>Exception Details :</h3>
+	}
+	else
+	{
+		<h3>
+			@ViewBag.ErrorDetailsPath
+		</h3>
+		<h3>
+			@ViewBag.ErrorDetailsError
+		</h3>
+		<h3>
+			An  occured while processing your request
+			The support team is notified and we are working on the fix
+		</h3>
+		<h5>Please contact us on InfotechGkp@gmail.com</h5>
+		<hr />
+		<h3>Exception Details :</h3>
+	}
+</div>

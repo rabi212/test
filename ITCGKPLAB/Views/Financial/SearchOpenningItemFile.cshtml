@@ -1,0 +1,201 @@
+﻿@model OpenSearchViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject ISettingRepository _repository;
+@inject IFinancialRepository _Irepository;
+@inject IAuthorizationService authorizationService;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Search Openning Stock File";
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	var userdetailsx = userManager.Users.Where(x => x.Id == userid).FirstOrDefault();
+	CompanyDetailViewModel companyDetailViewModels = await _repository.GetCompanyById(Convert.ToInt32(ViewBag.CompId) > 0 ? Convert.ToInt32(ViewBag.CompId) : (int)userdetailsx.CompanyDetailId);
+	List<OpenItemMasterViewModel> listItem = await _Irepository.SearchOpenItemMasterDateWise(Model.CompId, Model.UserId, Model.FromDate, Model.UptoDate);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="SearchOpenningItemFile" asp-controller="Financial" method="post" autocomplete="off">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-sm-2">
+							@if (!softwareheader.SoftwareMode)
+							{
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId"  asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									</select>
+								}
+							}
+							else
+							{
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId"  asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch" onblur="GetCompanyAllUser();">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId"  asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									</select>
+								}
+							}
+						</div>
+						<div class="col-sm-2">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="UserId" id="UserId" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else
+							{
+								if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+								{
+									<select asp-for="UserId" id="UserId" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == (int)userdetailsx.CompanyDetailId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+									</select>
+								}
+								else
+								{
+									<select asp-for="UserId" id="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+									</select>
+								}
+
+							}
+						</div>
+						<div class="col-sm-2">
+							<input asp-for="FromDate" class="form-control form-control-sm" title="From Date" />
+						</div>
+						<div class="col-sm-2">
+							<input asp-for="UptoDate" class="form-control form-control-sm" title="Upto Date" />
+						</div>
+						<div class="col-sm-1">
+							<label>Rcd: <span class="text-danger">@listItem.Count</span></label>
+						</div>
+						<div class="col-sm-3 text-sm-right">
+							<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />
+							<a asp-action="CreateOpenningItem" asp-controller="Financial" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="IPDPatientMasterlistTable1">
+			<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" title="Openning Stock File Search Records">
+				<thead class="RedDarkWhiteListHeader small">
+					<tr>
+						<th class="wdp-5" hidden>
+							Id
+						</th>
+						<th class="wdp-40">
+							Branch Code
+						</th>
+						<th class="wdp-10">
+							Vouch. No.
+						</th>
+						<th class="wdp-10">
+							Date
+						</th>
+						<th class="text-right">
+							Total Pcs
+						</th>
+						<th class="text-right">
+							Total MRP Amt.
+						</th>
+						<th class="text-right">
+							Net Pur Amt.
+						</th>
+						<th style="text-align:center;" class="wdp-8">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (listItem.Any())
+					{
+						@foreach (var item in listItem)
+						{
+							int totalpcs = Convert.ToInt32(item.OpenItemMasterDetailViewModels.Where(x => x.OpnIMId == item.OpnId).Sum(x => x.TotalPcs));
+							decimal totalmrpAmt = Convert.ToDecimal(item.OpenItemMasterDetailViewModels.Where(x => x.OpnIMId == item.OpnId).Sum(x => x.MRPAmt));
+							decimal totalPurAmt = Convert.ToDecimal(item.OpenItemMasterDetailViewModels.Where(x => x.OpnIMId == item.OpnId).Sum(x => x.NetPurAmt));
+							<tr>
+								<td hidden>
+									@item.OpnId
+								</td>
+								<td>
+									@(item.CompanyDetailViewModel.TransCode + " " + item.CompanyDetailViewModel.CompName + " " + item.CompanyDetailViewModel.Address1)
+								</td>
+								<td>
+									@(item.OpnVNo)
+								</td>
+								<td>
+									@item.OpnDate
+								</td>
+								<td class="text-right">
+									@totalpcs
+								</td>
+								<td class="text-right">
+									@totalmrpAmt
+								</td>
+								<td class="text-right">
+									@totalPurAmt
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditOpenningStockPolicy")).Succeeded)
+									{
+										<a asp-action="CreateOpenningItem" asp-controller="Financial" asp-route-id=@item.OpnId title="Edit"><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteOpenningStockPolicy")).Succeeded)
+									{
+										<a asp-action="DeleteOpenningItemRecord" asp-controller="Financial" asp-route-id=@item.OpnId title="Delete" onclick="return confirm ('Are you sure you want to delete record : @item.OpnId')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+								</td>
+							</tr>
+						}
+						<tr class="bg-info text-white">
+							<td colspan="3" class="text-right">
+								Total
+							</td>
+							<td class="text-right">
+								@(listItem.Sum(x => x.OpenItemMasterDetailViewModels.Sum(n => n.TotalPcs)))
+							</td>
+							<td class="text-right">
+								@(listItem.Sum(x => x.OpenItemMasterDetailViewModels.Sum(n => n.MRPAmt)))
+							</td>
+							<td class="text-right">
+								@(listItem.Sum(x => x.OpenItemMasterDetailViewModels.Sum(n => n.NetPurAmt)))
+							</td>
+							<td></td>
+						</tr>
+					}
+					else
+					{
+						<tr title="Openning Stock File Search Records">
+							<td colspan="7">
+								@if (Model.SearchRecordFinder == "Yes")
+								{
+									<h3 class="text-danger text-center">No Record found......</h3>
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$('#IPDPatientMasterlistTable1').height(screen.height - 190);
+	</script>
+}

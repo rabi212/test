@@ -1,0 +1,126 @@
+﻿@model OpenSearchViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject ISettingRepository _repository;
+@inject IPayBillRepository _prepository;
+@inject IAuthorizationService authorizationService
+@{
+	ViewData["Title"] = "Monthly Wise Bank Statement";
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	var userdetailsx = userManager.Users.Where(x => x.Id == userid).FirstOrDefault();
+	var searchDate = ViewBag.searchDate;
+	List<UpdatePayBillViewModel> listItem = await _prepository.PayBillMonthly(searchDate);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="ExecutiveMonthlyBankStatement" asp-controller="PayBill" method="post" autocomplete="off">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<select name="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch" hidden>
+						</select>
+						<select name="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'" hidden>
+						</select>
+						<label asp-for="PayUptoDate" class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 col-form-label col-form-label-sm text-sm-right"></label>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="PayUptoDate" class="form-control form-control-sm" onblur="TotalDaysCount();" />
+						</div>
+						<label asp-for="PayBillDays" class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 col-form-label col-form-label-sm text-sm-right"></label>
+						<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1">
+							<input asp-for="PayBillDays" class="form-control form-control-sm" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+							<label>Record : <span class="text-danger">@listItem.Count</span></label>
+							<label>Total payable : <span class="text-danger">@(listItem.Sum(x => x.NetPay))</span></label>
+						</div>
+						<div class="col-2 col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 text-right">
+							<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="SaleOrderItemMasterlistTable1">
+			<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" title="Payment Salary Monthly Bank Statement Records">
+				<thead class="RedDarkWhiteListHeader small">
+					<tr>
+						<th class="wdp-5">
+							Id
+						</th>
+						<th class="wdp-5">
+							Code
+						</th>
+						<th class="wdp-20">
+							Executive Name
+						</th>
+						<th class="wdp-30">
+							Bank's Name
+						</th>
+						<th class="wdp-15">
+							A/c No.
+						</th>
+						<th class="wdp-15">
+							IFSC No.
+						</th>
+						<th class="wdp-10 text-right">
+							Net Pay
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (listItem.Any())
+					{
+						@foreach (var item in listItem)
+						{
+							<tr class="small">
+								<td>
+									@((int)item.EmpId)
+								</td>
+								<td>
+									@item.AgentFileViewModel.Code
+								</td>
+								<td>
+									@item.AgentFileViewModel.Name
+								</td>
+								<td>
+									@item.AgentFileViewModel.BankName
+								</td>
+								<td>
+									@(item.AgentFileViewModel.BankAcNo)
+								</td>
+								<td>
+									@item.AgentFileViewModel.IFSC
+								</td>
+								<td class="text-right">
+									@item.NetPay
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr title="Payment Salary Monthly Bank Statement Records">
+							<td colspan="10">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$('#SaleOrderItemMasterlistTable1').height(screen.height - 200);
+		var newDate = $('#PayUptoDate').val().split('/');
+		$('#PayBillDays').val(monthDayCount(newDate[1], newDate[2]));
+
+		function TotalDaysCount() {
+			var newDate = $('#PayUptoDate').val().split('/');
+			$('#PayBillDays').val(monthDayCount(newDate[1], newDate[2]));
+		}
+	</script>
+}

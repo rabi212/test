@@ -1,0 +1,99 @@
+﻿@model VoucherViewModel
+@inject ITransactionRepository _repository;
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _mrepository ;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject IGeneralMethod _method;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel MainBranch = await _srepository.GetCompanyById((int)Model.CompId);
+	double amt = Model.DrAmt > 0 ? (double)Model.DrAmt : (double)Model.CrAmt;
+	string namedetails;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div>
+		<h3 class="txtcenter">@Model.VType Voucher</h3>
+	</div>
+	<table class="table-responsive-sm border">
+		<thead>
+			<tr class="text-left">
+				<td colspan="4" class="wdp-60 txtcenter">
+					<h3 >@MainBranch.CompName</h3><br />
+					<p >@MainBranch.Address1  @MainBranch.Address2</p>
+					<p >Mob.No. @MainBranch.MobileNo   Ph.No. @MainBranch.PhoneNo  </p>
+				</td>
+				<td colspan="4" class="wdp-40">
+					<h6 class="border-bottom text-center"><b>ORIGIANL</b></h6>
+					<p class="border-bottom">Vch Date :- @Model.VDate</p><br />
+					<p>Vch No : @Model.VVNo</p>
+				</td>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model.VoucherDetailViewModels)
+			{
+
+				if (item.RefNo != null)
+				{					
+						AgentFileViewModel ptnamne = await _mrepository.GetAgentByCode(item.RefNo);
+						namedetails = "Executive Name : -" + ptnamne.Name + " " + ptnamne.Address1 + " " + ptnamne.MobileNo;
+				}
+				@if ((Model.VType == "Receipt" || Model.VType == "Bank Receipt") && item.Cr_Amt > 0)
+				{
+					<tr>
+						<td colspan="6">
+							A/c name : @item.VoucherPartyName<br />
+						</td>
+						<td colspan="2" class="numeric-cell">
+							Amt : @(item.Cr_Amt)
+						</td>
+					</tr>
+				}
+				else if ((Model.VType == "Payment" || Model.VType == "Bank Payment") && item.Dr_Amt > 0)
+				{
+					<tr>
+						<td colspan="6">
+							A/c name : @item.VoucherPartyName<br />
+						</td>
+						<td colspan="2" class="numeric-cell">
+							Amt : @(item.Dr_Amt)
+						</td>
+					</tr>
+				}
+			}			
+			<tr class="border-top">
+				<td colspan="8" class="numeric-cell">
+					<b>Rs. : @(Model.DrAmt > 0 ? @Model.DrAmt : @Model.CrAmt)</b>
+				</td>
+			</tr>
+			<tr class="border-top">
+				<td colspan="8">
+					<b>Rupees :- @(await _method.Customizedwords(Convert.ToDouble(amt)))</b>
+				</td>
+			</tr>
+			<tr class="border-top">
+				<td colspan="8">
+					<b>Vech Desc :</b> <span>@Model.Remark</span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<br /><br />
+	<div class="invoice-to">
+		<h6>Receiver Signature</h6>
+	</div>
+	<div class="invoice-details">
+		<h6>For : @MainBranch.CompName</h6>
+		<h6>Authorised Signature</h6>
+	</div>
+</body>
+</html>
+

@@ -1,0 +1,50 @@
+﻿@model PatientInvestigationViewModel
+<table>
+	<tr style="height:15px;">
+		@if (Model.ColFirst != null && Model.ColSecond != null && Model.ColThird != null &&  Model.ColFourth != null && Model.ColFifth != null && Model.ColSixth != null)
+		{
+			<td class="wdp-15" style="@ViewData["TableStyle"]">@Model.TestDetails</td>
+			<td class="wdp-15" style="@ViewData["TableStyle"]">@Model.ColFirst</td>
+			<td class="wdp-15" style="@ViewData["TableStyle"]">@Model.ColSecond</td>
+			<td class="wdp-15" style="@ViewData["TableStyle"]">@Model.ColThird</td>
+			<td class="wdp-15" style="@ViewData["TableStyle"]">@Model.ColFourth</td>
+			<td class="wdp-15" style="@ViewData["TableStyle"]">@Model.ColFifth</td>
+			<td class="wdp-10" style="@ViewData["TableStyle"]">@Model.ColSixth</td>
+		}
+		else if (Model.ColFirst != null && Model.ColSecond != null && Model.ColThird != null &&	Model.ColFourth != null && Model.ColFifth != null)
+		{
+			<td class="wdp-17" style="@ViewData["TableStyle"]">@Model.TestDetails</td>
+			<td class="wdp-17" style="@ViewData["TableStyle"]">@Model.ColFirst</td>
+			<td class="wdp-17" style="@ViewData["TableStyle"]">@Model.ColSecond</td>
+			<td class="wdp-17" style="@ViewData["TableStyle"]">@Model.ColThird</td>
+			<td class="wdp-17" style="@ViewData["TableStyle"]">@Model.ColFourth</td>
+			<td class="wdp-15" style="@ViewData["TableStyle"]">@Model.ColFifth</td>
+		}
+		else if (Model.ColFirst != null && Model.ColSecond != null && Model.ColThird != null &&	Model.ColFourth != null)
+		{
+			<td class="wdp-20" style="@ViewData["TableStyle"]">@Model.TestDetails</td>
+			<td class="wdp-20" style="@ViewData["TableStyle"]">@Model.ColFirst</td>
+			<td class="wdp-20" style="@ViewData["TableStyle"]">@Model.ColSecond</td>
+			<td class="wdp-20" style="@ViewData["TableStyle"]">@Model.ColThird</td>
+			<td class="wdp-20" style="@ViewData["TableStyle"]">@Model.ColFourth</td>
+		}
+		else if (Model.ColFirst != null && Model.ColSecond != null && Model.ColThird != null)
+		{
+			<td class="wdp-25" style="@ViewData["TableStyle"]">@Model.TestDetails</td>
+			<td class="wdp-25" style="@ViewData["TableStyle"]">@Model.ColFirst</td>
+			<td class="wdp-25" style="@ViewData["TableStyle"]">@Model.ColSecond</td>
+			<td class="wdp-25" style="@ViewData["TableStyle"]">@Model.ColThird</td>
+		}
+		else if (Model.ColFirst != null && Model.ColSecond != null)
+		{
+			<td class="wdp-35" style="@ViewData["TableStyle"]">@Model.TestDetails</td>
+			<td class="wdp-35" style="@ViewData["TableStyle"]">@Model.ColFirst</td>
+			<td class="wdp-30" style="@ViewData["TableStyle"]">@Model.ColSecond</td>
+		}
+		else if (Model.ColFirst != null)
+		{
+			<td class="wdp-50" style="@ViewData["TableStyle"]">@Model.TestDetails</td>
+			<td class="wdp-50" style="@ViewData["TableStyle"]">@Model.ColFirst</td>
+		}
+	</tr>
+</table>

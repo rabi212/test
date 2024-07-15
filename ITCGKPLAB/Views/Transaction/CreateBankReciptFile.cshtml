@@ -1,0 +1,172 @@
+﻿@model VoucherViewModel
+@inject ISettingRepository _repository;
+@inject IFinancialRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject IAuthorizationService authorizationService;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Create Bank Receipt Voucher";
+	string submitValue = Convert.ToInt32(Model.VId) > 0 ? "Update" : "Save";
+	var Currentuser = await userManager.GetUserAsync(User);
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h4 class="text-center text-white HeadingColorRed">Bank Receipt Voucher</h4>
+		<form asp-action="CreateBankReciptFile" asp-controller="Transaction" method="post" id="form" autocomplete="off">
+			<input asp-for="VId" class="form-control" hidden />
+			<input asp-for="UserCode" class="form-control" value="@(Model.VId > 0 ? Model.UserCode : Currentuser.Id)" hidden />
+			<input asp-for="CurrentNo" class="form-control" hidden />
+			<input asp-for="RowId" class="form-control" hidden />
+			<input asp-for="VType" class="form-control" hidden />
+
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+					@if (!softwareheader.SoftwareMode)
+					{
+						<div class="form-group row">
+							<label asp-for="CompId" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label "></label>
+							<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+								<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetCashReciptVoucherSrNo(); FilterAccount();">
+								</select>
+							</div>
+							<label asp-for="VVNo" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label  "></label>
+							<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+								<input asp-for="VVNo" class="form-control " hidden />
+								<b><label id="VVNoX" class="col-form-label  text-success"></label></b>
+							</div>
+						</div>
+						
+					}
+					else
+					{
+						@if (User.IsInRole("SuperAdmin"))
+						{
+							<div class="form-group row">
+								<label asp-for="CompId" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label "></label>
+								<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetCashReciptVoucherSrNo(); FilterAccount();">
+									</select>
+								</div>
+								<label asp-for="VVNo" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label  "></label>
+								<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+									<input asp-for="VVNo" class="form-control " hidden />
+									<b><label id="VVNoX" class="col-form-label  text-success"></label></b>
+								</div>
+							</div>
+						}
+						else
+						{
+							<div class="form-group row">
+								<label asp-for="CompId" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label "></label>
+								<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(companyDetail.Id)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetCashReciptVoucherSrNo(); FilterAccount();">
+									</select>
+								</div>
+								<label asp-for="VVNo" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label  "></label>
+								<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+									<input asp-for="VVNo" class="form-control " hidden />
+									<b><label id="VVNoX" class="col-form-label  text-success"></label></b>
+								</div>
+							</div>
+						}
+					}
+				</div>
+				<div class="col-12 col-sm-12 col-md-7 col-lg-7 col-xl-7">
+					<div class="form-group row">
+						<label asp-for="VDate" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+							<input asp-for="VDate" class="form-control " />
+						</div>
+
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-7 text-right text-danger">
+							<h5>@DateTime.Now.ToString("dddd")</h5>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="stateScroll boxcolorback" id="CashRecivedVoucherItemTable1">
+						<table class="table table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="CashRecivedVoucherItemTableWidth">
+							<thead class="RedDarkWhiteListHeader ">
+								<tr>
+									<th class="text-center wdp-3">##</th>			@*Action*@
+									<th class="wdp-4">SrNo.</th>
+									<th class="wdp-5">Mode</th>
+									<th class="wdp-40">A/c Name</th>
+									<th class="text-right wdp-10">Debit Amt.</th>
+									<th class="text-right wdp-10">Credit Amt.</th>
+									<th class="wdp-12">Executive No.</th>
+									<th class="wdp-15">Cheque No.</th>
+								</tr>
+							</thead>
+							<tbody id="orderItemContinaer">
+								@Html.EditorFor(model => model.VoucherDetailViewModels)
+							</tbody>
+							<tfoot>
+								<tr>
+									@*<td><input type="button" id="btnAdd" value="New" class="btn btn-primary btn-sm" style="width:auto;" /></td>*@
+									<td class="text-center">
+										<a href="#" id="btnAdd" type="button" class="mt-1"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+									</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+					<textarea asp-for="Remark" class="form-control  CustomText" rows="3" placeholder="Coments"> </textarea>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					<input asp-for="DrAmt" class="form-control " hidden />
+					<b><label id="DrAmtX" class="col-form-label  text-success"></label></b>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+					<input asp-for="CrAmt" class="form-control " hidden />
+					<b><label id="CrAmtX" class="col-form-label  text-danger"></label></b>
+				</div>
+				<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 text-right">
+					<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+								<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+					@if ((await authorizationService.AuthorizeAsync(User, "CashReciptBillPrintFilePolicy")).Succeeded)
+					{
+						if (Model.VId > 0)
+						{
+							<a asp-action="CashReciptBillPrint" asp-controller="Reporting" asp-route-id="@Model.VId" class="btn btn-warning btn-sm" target="_blank">Print</a>
+						}
+						else
+						{
+							<a asp-action="CashReciptBillPrint" asp-controller="Reporting" class="btn btn-warning btn-sm disabled" target="_blank">Print</a>
+						}
+					}
+					<a asp-action="CreateBankReciptFile" asp-controller="Transaction" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-info  btn-sm" style="width:auto;">Add New</a>
+					<a asp-action="SearchVoucherFile" asp-route-vouchertype="Bank Receipt" asp-controller="Transaction" class="btn btn-dark btn-sm" style="width:auto;">Cancel</a>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+	<script src="~/js/CashRecivedVoucherFile.js" asp-append-version="true"></script>
+	<script>
+		$('#CashRecivedVoucherItemTable1').height(screen.height - 380);
+		$('#CashRecivedVoucherItemTableWidth').width(screen.width - 80);
+	</script>
+}

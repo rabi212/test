@@ -1,0 +1,89 @@
+﻿@model PurchaseOrderViewModel
+@inject IMasterRepository _repository;
+@inject ISettingRepository _srepository;
+@inject IGeneralMethod _grepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel companyDetailViewModels = await _srepository.GetCompanyById(((int)(await userManager.GetUserAsync(User)).CompanyDetailId));
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	
+	<div class="branchCenter-details">
+		<h2>@companyDetailViewModels.CompName</h2>
+		<div style="margin-top:-15px;">
+			@companyDetailViewModels.Address1<br />
+				@(companyDetailViewModels.Address2)<br />
+				Email :- @companyDetailViewModels.EmailAddress<br />
+				Cell No. :- @(companyDetailViewModels.PhoneNo + " " + companyDetailViewModels.MobileNo  + " GST No. " + companyDetailViewModels.GSTNo )<br />
+				@(" State :" + companyDetailViewModels.StateInCompany.StateName + " District : " + companyDetailViewModels.DistrictInCompany.DistrictName)<br />
+				<h3 style="border-top: 3px solid black; border-bottom: 3px solid black;">Order For Supply Bill </h3>
+		</div>
+	</div>
+
+	<div class="invoice-to" style="margin-top:-10px;padding-bottom:5px;">
+		Party's Name :- @(Model.LedgerMasterViewModel.PartyName) <br />
+		Address :- @(Model.LedgerMasterViewModel.Address1) <br />
+		Mobile No. :- @(Model.LedgerMasterViewModel.MobileNo1 + " GST No. " + Model.LedgerMasterViewModel.GSTNo)
+	</div>
+	<div class="invoice-details" style="margin-top: -10px; padding-bottom: 5px;">
+		<strong>Order No. :-  @(Model.SOVNo )</strong><br />
+		Date :- @(Model.ODate)<br />
+		State :- @(Model.LedgerMasterViewModel.StateLedgerMasterView.StateName)
+	</div>
+
+
+	<table class="table-responsive-sm border">
+		<thead>
+			<tr class="text-left">
+				<th class="wdp-4">Sr.No.</th>
+				<th class="wdp-63">Particulars</th>
+				<th class="wdp-15 text-right">Qty</th>
+				<th class="wdp-8 text-right">GST%</th>
+				<th class="wdp-10 text-right">Rate</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model.PurchaseOrderDetailViewModels)
+			{				
+			<tr class="noBorder">
+				<td>@item.TempSrNo</td>
+				<td>@item.SSItemName</td>
+				<td class="numeric-cell">@(item.CasePcs + " / " + item.UnitName)</td>
+				<td class="numeric-cell">@item.GSTPer</td>
+				<td class="numeric-cell">@item.Rate</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+	<table class="table-responsive-sm">
+		<tbody>
+			<tr class="noBorder">
+				<td></td>
+				<td class="numeric-cell brdBottom">Total Qty :- </td>
+				<td class="numeric-cell brdBottom">@Model.PurchaseOrderDetailViewModels.Sum(x => x.CasePcs)</td>
+			</tr>
+			
+		</tbody>
+	</table>
+	<div>		
+			<strong>Remark :-</strong><br />
+			@Model.Remark
+	</div>
+	<div class="invoice-head clearfix">
+		<div class="invoice-to">
+			<strong>@User.Identity.Name</strong>
+		</div>
+		<div class="invoice-details">
+			<h5>Authorized Signature</h5>
+		</div>
+	</div>
+</body>
+</html>

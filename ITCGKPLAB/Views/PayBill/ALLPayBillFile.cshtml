@@ -1,0 +1,72 @@
+﻿@model OpenSearchViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject ISettingRepository _repository;
+@inject IPayBillRepository _prepository;
+@inject IAuthorizationService authorizationService
+@{
+	ViewData["Title"] = "Print All Pay Slip";
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	var userdetailsx = userManager.Users.Where(x => x.Id == userid).FirstOrDefault();
+	var userdetailsxx = userManager.Users.Where(x => x.Id == Model.UserId).FirstOrDefault();
+}
+
+<div class="CustomerLoginRelative">
+	<div class="CustomerNewUser">
+		<h4 class="text-center text-white HeadingColorGreen">Print ALL Pay Slip</h4>
+		<form asp-action="ALLPayBillFile" asp-controller="PayBill" method="get" autocomplete="off">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<select name="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch" hidden>
+						</select>
+						<select name="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'" hidden>
+						</select>
+						<label asp-for="PayUptoDate" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm text-right"></label>
+						<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+							<input asp-for="PayUptoDate" class="form-control form-control-sm" onblur="TotalDaysCount();" />
+						</div>
+						<label asp-for="PayBillDays" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm text-right"></label>
+						<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+							<input asp-for="PayBillDays" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<a asp-action="SalaryALLBillPrint" asp-controller="Reporting" asp-route-fromdate="@Model.PayUptoDate" class="btn btn-primary btn-sm " target="_blank" title="Print">Print</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</form>
+	</div>
+</div>
+@section scripts {
+	<script>
+		var newDate = $('#PayUptoDate').val().split('/');
+		$('#PayBillDays').val(monthDayCount(newDate[1], newDate[2]));
+
+		function TotalDaysCount() {
+			var newDate = $('#PayUptoDate').val().split('/');
+			$('#PayBillDays').val(monthDayCount(newDate[1], newDate[2]));
+		}
+	</script>
+
+}

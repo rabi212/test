@@ -1,0 +1,48 @@
+﻿@model SaleRDetailViewModel
+<tr>
+	<td class="text-center">
+		@*<a href="#" id="Delbutton" type="button" onclick="deleteRow(this)" class="mt-1"><i class="fas fa-times fa-1x icon-color-red" ></i></a>*@
+		<input id="Delbutton" type="button" onclick="deleteRow(this)" value="Del" class="btn btn-info btn-sm" style="width:auto;" />
+	</td>
+	<td>
+		<input asp-for="TempSrNo" class="form-control " readonly/>
+	</td>
+	<td>
+		<input asp-for="ItemCode" class="form-control  " hidden />
+		<input asp-for="SRItemName" class="form-control   OpenItemDetailRecord" onfocus="FindRowIndex(this); ItemSearchRecord();" onblur="FilterItemBatchNo();" />
+	</td>
+	<td>
+		<input asp-for="BatchNo" class="form-control  BatchDetailRecord" onfocus="BatchSearchRecord();" />
+	</td>
+	<td>
+		<input asp-for="ExpDate" class="form-control " placeholder="dd/mm/yyyy" readonly />
+	</td>
+	<td>
+		<input asp-for="Qty" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); TotalSaleAmt();" />
+	</td>
+	<td>
+		<input asp-for="CustSaleRate" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); TotalSaleAmt();" />
+	</td>
+	<td>
+		<input asp-for="DiscPer1" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); TotalDiscountAmt();" />
+	</td>
+	<td>
+		<input asp-for="TotalDiscAmt" title="Total Disc Amt" class="form-control   text-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+	</td>
+	<td>
+		<input asp-for="GSTPer" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); NetSaleAmount(); GrandTotalAmtCount();" />
+	</td>
+	<td>
+		<input asp-for="MRP" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" readonly />
+	</td>
+	<td>
+		<input asp-for="TotalAmt" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" readonly />		
+	</td>
+	<td hidden>	
+		<input asp-for="PurRate" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); " />	
+		<input asp-for="SaleRate" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />	
+		<input asp-for="NetPurRate" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />			
+		<input asp-for="NetTotalAmt" title="NET Total Amt." class="form-control  text-sm-right" onfocus="FindRowIndex(this)" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />	
+		<input asp-for="RecordType" title="RecordType" class="form-control   text-right" onfocus="FindRowIndex(this)" />
+	</td>
+</tr>

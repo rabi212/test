@@ -1,0 +1,131 @@
+﻿@model OpenSearchViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById((int)((await userManager.GetUserAsync(User)).CompanyDetailId));
+	List<PatientDueReciptViewModel> patientList = new List<PatientDueReciptViewModel>();
+	patientList = await _iMasterRepository.GetPatientDueReciptDateWise(Model.UserId, Model.FromDate, Model.UptoDate,Model.PaymentMode);
+	int memberCount = 1;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="branchCenter-details">
+		<h3 >@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">Due Receipt Report</h4>
+	</div>
+
+	<div class="invoice-to">
+		<strong>From Date : @Model.FromDate.ToString("dd/MM/yyyy")</strong><strong>  Upto Date : @Model.UptoDate.ToString("dd/MM/yyyy")</strong>
+	</div>
+	<table class="table-responsive-sm border fontsizebody">
+		<thead >
+			<tr class="text-left">
+				<th class="wdp-3">
+					SrNo.
+				</th>
+				<th class="wdp-6">
+					User's Name
+				</th>
+				<th class="wdp-10">
+					Branch's Name
+				</th>
+				<th class="wdp-5">
+					Regst.Date
+				</th>
+				<th class="wdp-5">
+					UID
+				</th>
+				<th class="wdp-5">
+					Pay Date
+				</th>
+				<th>
+					Patient Details
+				</th>
+				<th>
+					Investigation
+				</th>
+				<th class="wdp-5">
+					Payment
+				</th>
+				<th class="text-right wdp-8">
+					Total Due
+				</th>
+				<th class="text-right wdp-8">
+					Disc. Amt.
+				</th>
+				<th class="text-right wdp-8">
+					Paid Amt.
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in patientList)
+			{
+				<tr>
+					<td>
+						@memberCount
+					</td>
+					<td>
+						@((await userManager.FindByIdAsync(item.UserCode)).UserName.Substring(0,8).ToUpper())
+					</td>
+					<td>
+						@item.PatientViewModel.CompanyDetailViewModel.NameAddress
+					</td>
+					<td>
+						@item.PatientViewModel.SDate
+					</td>
+					<td>
+						@item.VNo
+					</td>
+					<td>
+						@item.VDate						
+					</td>
+					<td>
+						@(item.PatientViewModel.TitleName + " " + item.PatientViewModel.Name + " " + item.PatientViewModel.Age + " " + item.PatientViewModel.AgeType + " " + item.PatientViewModel.Sex + "Mob.No." + item.PatientViewModel.MobileNo)
+					</td>
+					<td>
+						@item.PatientViewModel.TestDetailRecord
+					</td>
+					<td class="wdp-5">
+						@item.PaymentType
+					</td>
+					<td class="numeric-cell">
+						@item.TotalAmt
+					</td>
+					<td class="numeric-cell">
+						@item.DiscAmt
+					</td>
+					<td class="numeric-cell">
+						@item.PaidAmt
+					</td>					
+				</tr>
+				memberCount++;
+			}
+			<tr>
+				<td colspan="9" class="numeric-cell">
+					<strong>Grand Total Amt.</strong><br />				
+				</td>
+				<td class="numeric-cell">
+					<strong>@patientList.Sum(x => x.TotalAmt)</strong>
+				</td>
+				<td class="numeric-cell">
+					<strong>@patientList.Sum(x => x.DiscAmt)</strong>
+				</td>
+				<td class="numeric-cell">
+					<strong>@patientList.Sum(x => x.PaidAmt)</strong>
+				</td>				
+			</tr>
+		</tbody>
+	</table>
+
+</body>
+</html>

@@ -1,0 +1,190 @@
+﻿@model AccountConfigViewModel
+@inject IFinancialRepository _repository;
+@inject ISettingRepository _irepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> _userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{
+	ViewData["Title"] = "Account Configuration File";
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+	var softwareheader = softwareoption.Value;
+}
+<div class="CustomBorderRelative pt-1">
+	<div class="CustomBorder1">
+		<h3 class="text-center text-white bg-danger">Account Configuration File</h3>
+		<form asp-action="CreateAccountConfigurationFile" asp-controller="Financial" method="post">
+			<input asp-for="Id" class="form-control form-control-sm" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="CompId" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="CompId" asp-items=" (await _irepository.GetAllCompany(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.TransCode).Select(x=> new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="SaleCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="SaleCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName) .Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CreditCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="CreditCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PurCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="PurCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DebitCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="DebitCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="FreightCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="FreightCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="FreightOut" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="FreightOut" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CGSTCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="CGSTCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="SGSTCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="SGSTCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="IGSTCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="IGSTCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CessCode" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="CessCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="AdvCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="AdvCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DiscCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="DiscCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DiscAllowed" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="DiscAllowed" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CashCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="CashCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DigitalCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="DigitalCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+
+					<div class="form-group row">
+						<label asp-for="CommissionCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="CommissionCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ServiceCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="ServiceCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ServiceOut" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="ServiceOut" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="StockCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="StockCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ProfitCode" class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+							<select asp-for="ProfitCode" asp-items=" (await _repository.SearchLedgerMasterByALLGroup(softwareheader.SoftwareMode == true ? (int)(await _userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.PartyName).Select(x=> new SelectListItem() { Text = x.PartyName, Value = x.LedgerMasterId.ToString() })" class="form-control form-control-sm CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+						<input type="submit" value="@submitValue" class="btn btn-success btn-sm" />
+						<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+

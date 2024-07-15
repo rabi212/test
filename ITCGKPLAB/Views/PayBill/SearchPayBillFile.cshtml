@@ -1,0 +1,220 @@
+﻿@model OpenSearchViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@inject IPayBillRepository _prepository;
+@inject IAuthorizationService authorizationService
+@{
+	ViewData["Title"] = "Search Pay Bill File";
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	List<UpdatePayBillViewModel> listItem = await _prepository.SearchPayBillDateWise(Model.CompId, Model.UserId, Model.EmpId, Model.CustomerName, Model.MobileNo, Model.TotalAmt, Model.CashAmt, Model.Pending, Model.FromDate, Model.UptoDate);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<form asp-action="SearchPayBillFile" asp-controller="PayBill" method="post" autocomplete="off">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.TransCode).Select(x=> new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else
+							{
+								<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+								</select>
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="UserId" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else
+							{
+								if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+								{
+									<select asp-for="UserId" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == Model.CompId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control form-control-sm selectedItems" title="User's Name'">
+									</select>
+								}
+							}
+						</div>
+						<label asp-for="FromDate" class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="FromDate" class="form-control form-control-sm" />
+						</div>
+						<label asp-for="UptoDate" class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="UptoDate" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="EmpId" asp-items=" (await _mrepository.GetAllAgent(0)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control form-control-sm CustomText selectedItems" title="Executive's Name'">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else
+							{
+								<select asp-for="EmpId" asp-items=" (await _mrepository.GetAllAgent(Model.CompId)).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control form-control-sm CustomText selectedItems" title="Executive's Name'">
+									<option value="0">ALL</option>
+								</select>
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="CustomerName" class="form-control form-control-sm CustomText" placeholder="Executive's Name Container" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<div class="form-group row">
+								<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+									<input asp-for="MobileNo" class="form-control form-control-sm CustomText" placeholder="Mobile No." />
+								</div>
+								<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+									<input asp-for="TotalAmt" class="form-control form-control-sm CustomText text-right" title="Basic Amount" onblur="ConvertTwoDecimal(this)" />
+								</div>
+								<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+									<input asp-for="CashAmt" class="form-control form-control-sm CustomText text-right" title="Total Pay Amount" onblur="ConvertTwoDecimal(this)" />
+								</div>
+								<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+									<input asp-for="Pending" class="form-control form-control-sm CustomText text-right" title="Advance Amount" onblur="ConvertTwoDecimal(this)" />
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8 logofont CustLabel">
+					<label>Record : <span class="text-danger">@listItem.Count</span></label>
+					<label>Total Amt. : <span class="text-danger">@(listItem.Sum(x => x.TotalPay))</span></label>
+					<label>Total Deduct Amt. : <span class="text-danger">@(listItem.Sum(x => x.TotalDedPay))</span></label>
+					<label>Net Amt. : <span class="text-danger">@(listItem.Sum(x => x.NetPay))</span></label>
+				</div>
+				<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4 text-sm-right CustLabel">
+					<input type="submit" value="Search" class="btn btn-success btn-sm " style="width:auto;" />
+					<a asp-action="CreatePayBillFile" asp-controller="PayBill" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm" style="width:auto;">Add New</a>
+					<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="SaleOrderItemMasterlistTable1">
+			<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" title="Payment Salary Search Records">
+				<thead class="RedDarkWhiteListHeader small">
+					<tr>
+						<th class="wdp-5">
+							Id
+						</th>
+						<th class="wdp-10">
+							User's Name
+						</th>
+						<th class="wdp-10">
+							Branch's Name
+						</th>
+						<th class="wdp-5">
+							Date
+						</th>
+						<th>
+							Executive's Name
+						</th>
+						<th class="wdp-8">
+							Mob. No.
+						</th>
+						<th class="text-right wdp-8">
+							Total Amt.
+						</th>
+						<th class="text-right wdp-8">
+							Deduct Amt.
+						</th>
+						<th class="text-right wdp-8">
+							Net Amt.
+						</th>
+						<th style="text-align:center;" class="wdp-8">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (listItem.Any())
+					{
+						@foreach (var item in listItem)
+						{
+							<tr class="small">
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@((await userManager.FindByIdAsync(item.UserCode)).UserName)
+								</td>
+								<td>
+									@item.CompanyDetailViewModel.TransCode
+								</td>
+								<td>
+									@item.VDate
+								</td>
+								<td>
+									@(item.AgentFileViewModel.Code + " " + item.AgentFileViewModel.Name)
+								</td>
+								<td>
+									@item.AgentFileViewModel.MobileNo
+								</td>
+								<td class="text-right">
+									@item.TotalPay
+								</td>
+								<td class="text-right">
+									@item.TotalDedPay
+								</td>
+								<td class="text-right">
+									@item.NetPay
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "SalaryBillPrintFilePolicy")).Succeeded)
+									{
+										<a asp-action="SalaryBillPrint" asp-controller="Reporting" asp-route-id="@item.Id" target="_blank" title="Print"><span><i class="fa fa-print mr-3 fa-1x icon-color-white"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditSalaryFilePolicy")).Succeeded)
+									{
+										<a asp-action="CreatePayBillFile" asp-controller="PayBill" asp-route-id=@item.Id title="Edit"><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteSalaryFilePolicy")).Succeeded)
+									{
+										<a asp-action="DeletePayBillFile" asp-controller="PayBill" asp-route-id=@item.Id title="Delete" onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr title="Payment Salary Search Records">
+							<td colspan="10">
+								@if (Model.SearchRecordFinder == "Yes")
+								{
+									<h3 class="text-danger text-center">No Record found......</h3>
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$('#SaleOrderItemMasterlistTable1').height(screen.height - 260);
+	</script>
+}

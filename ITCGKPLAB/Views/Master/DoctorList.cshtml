@@ -1,0 +1,62 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	ViewData["Title"] = "Test Rate List";
+	var softwareheader = softwareoption.Value;
+	string userid = ((await userManager.GetUserAsync(User)).Id);
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+}
+<div class="CustomBorderRelative mt-1">
+	<div class="CustomerNewUser">
+		<h3 class="text-center text-white HeadingColorRed">Doctor List Print</h3>
+		<form asp-action="DoctorList" asp-controller="Master" method="post" autocomplete="off">
+			<div class="form-row">
+
+				@*<input asp-for="UserCode" class="form-control form-control-sm CustomText" value="@((await userManager.GetUserAsync(User)).Id)"  hidden/>*@
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="CompId" class="col-form-label col-form-label-sm col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							@if (!softwareheader.SoftwareMode)
+							{
+								@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.Id).Select(x=> new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									</select>
+								}
+							}
+							else
+							{
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' ' + x.Address1, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" title="Branch">
+									</select>
+								}
+							}
+						</div>
+					</div>					
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<button type="submit" class="btn btn-success btn-sm" formtarget="_blank">Print</button>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

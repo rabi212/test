@@ -1,0 +1,116 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId);
+	List<PatientViewModel> patientList = await _iMasterRepository.GetPatientDateWise(Model.CompId, Model.UserCode, Model.TestGroupName, Model.AgentAcCode, Model.DoctorAcCode, Model.FromDate, Model.UptoDate, Model.PaymentMode, Model.DrInLab);	
+	var patientDate = patientList.GroupBy(x => new { x.SDate } ).Select(n => new { n.Key.SDate }).ToList();
+	int memberCount = 1; 
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body >
+	<div class="branchCenter-details">
+		<h3>@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">Date Wise Summary</h4>
+	</div>
+
+	<div class="invoice-to">
+		<strong>From Date : @Model.FromDate.ToString("dd/MM/yyyy")</strong><strong>  Upto Date : @Model.UptoDate.ToString("dd/MM/yyyy")</strong>
+	</div>	
+		<table class="table-responsive-sm border fontsizebody">
+			<thead>
+				<tr class="text-center">
+					<th class="wdp-3">S.No.</th>
+					<th class="wdp-4">Date</th>
+					<th class="wdp-7">
+						No 
+					</th>					
+					<th>
+						Total Amt.
+					</th>
+					<th>
+						Dis.Amt.
+					</th>
+					<th>
+						Paid Amt.
+					</th>
+					<th>
+						Bal.Amt.
+					</th>
+					<th>
+						Cancel
+					</th>
+					<th>
+						Net Paid
+					</th>
+				</tr>
+			</thead>
+			<tbody>									
+				
+						@foreach (var itemn in patientDate)
+						{
+						
+							memberCount++;
+							<tr>
+								<td>
+									@memberCount
+								</td>
+								<td>@itemn.SDate</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate ).Count()</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate ).Sum(x => x.TotalAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate ).Sum(x => x.DiscAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate ).Sum(x => x.PaidAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate ).Sum(x => x.BalAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@patientList.Where(x => x.SDate == itemn.SDate &&  x.ReportCancel == "True" ).Sum(x => x.PaidAmt)</strong>
+								</td>
+								<td class="numeric-cell">
+									<strong>@(patientList.Where(x => x.SDate == itemn.SDate).Sum(x => x.PaidAmt) - patientList.Where(x => x.SDate == itemn.SDate &&  x.ReportCancel == "True" ).Sum(x => x.PaidAmt))</strong>
+								</td>
+							</tr>
+						}
+						<tr>
+							<td colspan="3" class="numeric-cell">
+								<strong>Total Amt.(@patientList.Count())</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Sum(x => x.TotalAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Sum(x => x.DiscAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Sum(x => x.PaidAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Sum(x => x.BalAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@patientList.Where(x => x.ReportCancel == "True").Sum(x => x.PaidAmt)</strong>
+							</td>
+							<td class="numeric-cell">
+								<strong>@(patientList.Sum(x => x.PaidAmt) - patientList.Where(x => x.ReportCancel == "True").Sum(x => x.PaidAmt))</strong>
+							</td>
+						</tr>
+			</tbody>
+		</table>	
+</body>
+</html>

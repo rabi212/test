@@ -1,0 +1,20 @@
+﻿@model TestRateDetailViewModel
+<tr>
+	<td>
+		<input asp-for="TempNo" class="form-control " readonly />
+		@*<input asp-for="CompIdX" class="form-control " hidden />*@
+		<input asp-for="Id" class="form-control " hidden />
+	</td>
+	<td>
+		<input asp-for="TestCode" class="form-control   OpenItemDetailRecord" readonly />
+	</td>
+	<td>
+		<input asp-for="Rate" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+	</td>
+	<td>
+		<input asp-for="PPRate" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+	</td>
+	<td>
+		<input asp-for="CCRate" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+	</td>
+</tr>

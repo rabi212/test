@@ -1,0 +1,90 @@
+﻿@model UpdatePayBillViewModel
+@inject IPayBillRepository _repository;
+@inject ISettingRepository _srepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel MainBranch = await _srepository.GetCompanyById(((int)(await userManager.GetUserAsync(User)).CompanyDetailId));
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="branchCenter-details">
+		<h3 class="text-center">Pay Slip</h3>
+	</div>
+	<table class="table-responsive-sm border fontsizebody">
+		<thead class="branchCenter-details">
+			<tr>
+				<td colspan="12" class="text-center">
+					<h3 class="">@MainBranch.CompName</h3><br />
+					<p>@MainBranch.Address1  @MainBranch.Address2</p>
+					<p>Mob.No. @MainBranch.MobileNo   Ph.No. @MainBranch.PhoneNo  </p>
+				</td>
+			</tr>
+		</thead>
+		<tbody>
+
+			<tr>
+				<td colspan="8">
+					<b>Exeuctive Name : @((int)Model.EmpId) - @Model.AgentFileViewModel.Code - @Model.AgentFileViewModel.Name</b>
+				</td>
+				<td colspan="4" class="numeric-cell">
+					<b> Month : @Model.VDate Basic Pay : @Model.BasicPay</b>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" class="text-right wdp-15">
+					Days :<br />
+					New Basic : <br />
+					TA : <br />
+					DA : <br />
+					HRA :<br />
+				</td>
+				<td colspan="2" class="text-right wdp-15">
+					@((int)Model.AttendDays)<br />
+					@(Model.NewBasicPay)<br />
+					@(Model.TA)<br />
+					@(Model.DA)<br />
+					@(Model.HRA)<br />
+				</td>
+				<td colspan="2" class="text-right wdp-15">
+					CCA : <br />
+					BONUS :<br />
+					I.P. : <br />
+					Remarks :<br />
+					E.P.F. : <br />
+				</td>
+				<td colspan="2" class="text-right wdp-15">
+					@(Model.CCA)<br />
+					@(Model.BonusAmt)<br />
+					@(Model.IPAmt)<br />
+					@Model.Remarks<br />
+					@Model.EFP<br />
+				</td>
+				<td colspan="2" class="text-right wdp-20">
+					Advance :<br />
+					Remarks :<br />
+					LIC :<br />
+					<b>Total Pay :</b><br />
+					<b>Deducation :</b><br />
+					<b>Net Pay : </b>
+				</td>
+				<td colspan="2" class="text-right wdp-20">
+					@Model.AdvAmt<br />
+					@Model.AdvRemarks	<br />
+					@Model.LIC<br />
+					<b>@Model.TotalPay</b><br />
+					<b>@Model.TotalDedPay</b><br />
+					<b>@Model.NetPay</b>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+</html>
+

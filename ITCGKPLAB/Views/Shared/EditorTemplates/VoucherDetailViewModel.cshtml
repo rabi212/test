@@ -1,0 +1,31 @@
+﻿@model VoucherDetailViewModel
+<tr>
+	<td class="text-center">
+		@*<a href="#" id="Delbutton" type="button" onclick="deleteRow(this)" class="mt-1"><i class="fas fa-times fa-1x icon-color-red" ></i></a>*@
+		<input id="Delbutton" type="button" onclick="deleteRow(this)" value="Del" class="btn btn-info btn-sm" style="width:auto;" />
+	</td>
+	<td>
+		<input asp-for="TempSrNo" class="form-control " onfocus="FindRowIndex(this);" readonly />
+	</td>
+	<td>
+		<select asp-for="AccountMode" asp-items="Html.GetEnumSelectList<AccountDrCr>()" class="form-control  AcountModeRecord selectedItems" onchange="DebitCreditVisible();" onfocus="FindRowIndex(this)">
+		</select>
+	</td>
+	<td>
+		<input asp-for="AcCode1" class="form-control  small" hidden />
+		<input asp-for="VoucherPartyName" class="form-control  small OpenItemDetailRecord" onfocus="FindRowIndex(this); AccountSearchRecord();" />
+	</td>
+	<td>
+		<input asp-for="Dr_Amt" class="form-control  text-right " onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); TotalPurMRPAmtCount();" onfocus="FindRowIndex(this);" />
+	</td>
+	<td>
+		<input asp-for="Cr_Amt" class="form-control  text-right " onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); TotalPurMRPAmtCount();" onfocus="FindRowIndex(this);" />
+	</td>
+	<td>
+		<input asp-for="RefNo" class="form-control " title="Patient No./Executive No." onblur="GetRemarkAutomation();" />
+	</td>
+	<td>
+		<input asp-for="ChequeNo" class="form-control " />
+		<input asp-for="RecordType" class="form-control " hidden />
+	</td>
+</tr>

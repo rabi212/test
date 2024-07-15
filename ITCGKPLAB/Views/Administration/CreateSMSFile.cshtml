@@ -1,0 +1,200 @@
+﻿@model SMSFileViewModel
+@inject ISettingRepository _repository;
+@{
+	ViewData["Title"] = "SMS File";
+	List<SMSFileViewModel> detailViewModels = await _repository.GetALLSMSFile(0);
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h3 class="text-center text-white bg-info">SMS Setting </h3>
+		<form asp-action="CreateSMSFile">
+			<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center"><div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany" style="border-bottom:3px solid blue;"></div></div>
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.TransCode).Select(x=> new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems">
+					</select>
+				</div>
+				<div class="form-group" hidden>
+					<label asp-for="Id" class="control-label"></label>
+					<input asp-for="Id" class="form-control" />
+					<span asp-validation-for="Id" class="text-danger"></span>
+				</div>
+				<div class="card col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 bg-warning">
+					<div class="card-header">
+						<label asp-for="Dateofbirth" class="control-label"></label>
+					</div>
+					<div class="form-group">
+						<textarea asp-for="Dateofbirth" class="form-control" rows="4">
+                    </textarea>
+					</div>
+				</div>
+				<div class="card col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 bg-info">
+					<div class="card-header">
+						<label asp-for="DateofAnniversary" class="control-label"></label>
+					</div>
+					<div class="form-group">
+						<textarea asp-for="DateofAnniversary" class="form-control" rows="4">
+                    </textarea>
+					</div>
+				</div>
+				<div class="card col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 bg-secondary">
+					<div class="card-header">
+						<label asp-for="DateOfInstallment" class="control-label"></label>
+					</div>
+					<div class="form-group">
+						<textarea asp-for="DateOfInstallment" class="form-control" rows="4">
+                    </textarea>
+					</div>
+				</div>
+				<div class="card col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 bg-primary">
+					<div class="card-header">
+						<label asp-for="DateOfMaturity" class="control-label"></label>
+					</div>
+					<div class="form-group">
+						<textarea asp-for="DateOfMaturity" class="form-control" rows="4">
+                    </textarea>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					@if (ViewBag.isSuccess)
+					{
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>@ViewBag.message </strong>
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+					}
+				</div>
+
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="Save" class="btn btn-sm btn-success" />
+							<a asp-action="CreateSMSFile" asp-controller="Administration" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-sm btn-warning">Reset</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-sm btn-outline-info">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 anyLine">
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+					<select id="CompId1" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" onchange="GetSMSFileRecord()">
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="stateScroll" id="LedgerTable1">
+			<table class="table table-striped table-bordered table-hover table-responsive-sm PurchaseVouch">
+				<thead class="RedDarkWhiteListHeader">
+					<tr>
+						<th class="wdp-80" hidden>
+							Id
+						</th>
+						<th>
+							Date of Birth
+						</th>
+						<th>
+							DateofAnniversary
+						</th>
+						<th>
+							DateOfInstallment
+						</th>
+						<th>
+							DateOfMaturity
+						</th>
+						<th class="actionListButtonWidthAgent">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody class="tbodyAddress">
+					@if (detailViewModels.Count() > 0)
+					{
+						@foreach (var item in detailViewModels)
+						{
+							<tr>
+								<td hidden>
+									@item.Id
+								</td>
+								<td>
+									@item.Dateofbirth
+								</td>
+								<td>
+									@item.DateofAnniversary
+								</td>
+								<td>
+									@item.DateOfInstallment
+								</td>
+								<td>
+									@item.DateOfMaturity
+								</td>
+								<td class="actionListButtonWidthAgent">
+									<a asp-action="CreateSMSFile" asp-controller="Administration" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-2x icon-color-green"></i></span></a>
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="5">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<script>
+	$('#LedgerTable1').height(screen.height - 490);
+	function GetSMSFileRecord() {
+		var empobj = {
+			CompId1: $('#CompId1').val()
+		}
+		$.ajax({
+			url: "/Administration/GetSearchASMSFile/",
+			method: "GET",
+			dataType: "json",
+			data: empobj,
+			contentType: "application/json",
+			success: function (result) {
+				var html = '';
+				if (result.length > 0) {
+					$.each(result, function (key, item) {
+						html += '<tr class="small">';
+						html += '<td hidden>' + item.id + '</td>';
+						html += '<td>' + item.dateofbirth + '</td>';
+						html += '<td>' + item.dateofAnniversary + '</td>';
+						html += '<td>' + item.dateOfInstallment + '</td>';
+						html += '<td>' + item.dateOfMaturity + '</td>';
+						html += '<td class="actionListButtonWidthAgent">' +
+							'<a href="CreateSMSFile?id=' + item.id + '"' + '<span><i class="far fa-edit mr-3 fa-2x icon-color-green"></i></span></a>' +
+							'</td >';
+						html += '</tr>';
+					});
+				}
+				else {
+					html += '<tr>';
+					html += '<td colspan="6"> ' + '<h3 class="text-danger text-center">No Record found......</h3>' + '</td>';
+					html += '</tr>';
+				}
+				$('.tbodyAddress').html(html);
+				// '<a href="AddressBook-Delete-File?id=' + item.ledgerMasterId + '"' +  '<span><i class="fas fa-times fa-2x icon-color-red"></i></span></a>' +
+			},
+			error: function (errormessage) {
+				console.error(errormessage.responseText);
+			}
+		});
+		return false;
+	}
+	</script>
+}

@@ -1,0 +1,128 @@
+[
+  {
+    "outputFileName": "wwwroot/css/Custom.min.css",
+    "inputFiles": [
+      "wwwroot/css/Custom.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/MyStyleSheet.min.css",
+    "inputFiles": [
+      "wwwroot/css/MyStyleSheet.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/MyStyleSheetX.min.css",
+    "inputFiles": [
+      "wwwroot/css/MyStyleSheetX.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/Site.min.css",
+    "inputFiles": [
+      "wwwroot/css/Site.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/SuperAdmin.min.css",
+    "inputFiles": [
+      "wwwroot/css/SuperAdmin.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/site.min.js",
+    "inputFiles": [
+      "wwwroot/js/site.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/MyCompany.min.js",
+    "inputFiles": [
+      "wwwroot/js/MyCompany.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/Custom.min.js",
+    "inputFiles": [
+      "wwwroot/js/Custom.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/MyAccountGroup.min.js",
+    "inputFiles": [
+      "wwwroot/js/MyAccountGroup.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/AddressBook.min.js",
+    "inputFiles": [
+      "wwwroot/js/AddressBook.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/ItemFile.min.js",
+    "inputFiles": [
+      "wwwroot/js/ItemFile.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/AgentFile.min.js",
+    "inputFiles": [
+      "wwwroot/js/AgentFile.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/MyTestFile.min.js",
+    "inputFiles": [
+      "wwwroot/js/MyTestFile.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/MyTestPreResultFile.min.js",
+    "inputFiles": [
+      "wwwroot/js/MyTestPreResultFile.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/PatientRecordFind.min.js",
+    "inputFiles": [
+      "wwwroot/js/PatientRecordFind.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/MyTestRateFile.min.js",
+    "inputFiles": [
+      "wwwroot/js/MyTestRateFile.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/DueReciptFile.min.js",
+    "inputFiles": [
+      "wwwroot/js/DueReciptFile.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/SearchAuditFind.min.js",
+    "inputFiles": [
+      "wwwroot/js/SearchAuditFind.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/PayBill.min.js",
+    "inputFiles": [
+      "wwwroot/js/PayBill.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/ResultSearchFind.min.js",
+    "inputFiles": [
+      "wwwroot/js/ResultSearchFind.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/MyDoctorFile.min.js",
+    "inputFiles": [
+      "wwwroot/js/MyDoctorFile.js"
+    ]
+  }
+]

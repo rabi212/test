@@ -1,0 +1,234 @@
+﻿@model TestMasterViewModel
+@inject IMasterRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{
+	ViewData["Title"] = "CreateTestMasterFile";
+	var softwareheader = softwareoption.Value;
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h4 class="text-center text-white bg-dark">Test Master File</h4>
+		<form asp-action="CreateTestFile" asp-controller="Master" method="post" id="testform" autocomplete="off">
+			<input asp-for="Id" class="form-control " hidden />
+			<input asp-for="CompId" class="form-control " value="@(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)" hidden />
+			<input asp-for="CurrentNo" class="form-control  CustomText" hidden />
+			<input asp-for="RowId" class="form-control  CustomText" hidden />
+
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="TestCode" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="TestCode" class="form-control " />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="ReportId" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<select asp-for="ReportId" asp-items=" (await _repository.GetAllReportGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="TestGroupId" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<select asp-for="TestGroupId" asp-items=" (await _repository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="Rate" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="Rate" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="PPRate" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="PPRate" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" title="IP Fixed Amt." />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CCRate" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="CCRate" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="IPPer1" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="IPPer1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" title="IP %" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="IPAmt1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" title="IP Fixed Amt." />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="documentType" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<select asp-for="documentType" class="form-control  CustomText selectedItems" onchange="HeadChangeColHideShow()">
+								<option value="Reading">Reading</option>
+								<option value="Document">Document</option>
+								<option value="PathDoc">PathDoc</option>
+							</select>
+						</div>
+						<label asp-for="ColumnsNo" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="ColumnsNo" class="form-control  CustomText selectedItems">
+								<option value="0">0</option>
+								<option value="2">2</option>
+								<option value="3">3</option>
+								<option value="4">4</option>
+							</select>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="GraphsType" class="form-control  CustomText selectedItems">
+								<option value="No">No</option>
+								<option value="Yes">Yes</option>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="form-group  row ml-1 col-12" style="margin-top:-15px;">
+					<label><b class="text-danger">N-</b>For Unlock</label>
+					<label><b class="text-danger">L-</b>For Normal lock</label>
+					<label><b class="text-danger">M-</b>For Small Bold lock</label>
+					<label><b class="text-info ml-2">Y-</b>For Bold lock</label>
+					<label><b class="text-success ml-2">S-</b>For Small Bold</label>
+					<label><b class="text-primary ml-2">B-</b>For Normal unlock</label>
+				</div>
+				<div class="col-sm-12 ">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<div class="testScrollbar boxcolorback" id="TestSubMasterTable1">
+								<table class="table  table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="TestSubMasterWidth">
+									<thead class="RedDarkWhiteListHeader " id="tthead">
+										<tr>
+											<th class="text-center wdp-1">##</th>			@*Action*@
+											<th class="wdp-3">SrNo.</th>
+											<th class="wdp-17">Test Details</th>
+											<th class="wdp-5">Col 1</th>
+											<th class="wdp-5">Col 2</th>
+											<th class="wdp-5">Col 3</th>
+											<th class="wdp-5">Col 4</th>
+											<th class="wdp-5">Col 5</th>
+											<th class="wdp-5">Col 6</th>
+											<th class="wdp-2">T/F</th>
+											<th class="wdp-3">Lock</th>
+											<th class="wdp-3">Sex</th>
+											<th class="wdp-5">Unit</th>
+											<th class="wdp-4">Min</th>
+											<th class="wdp-2">**</th> @*symble*@
+											<th class="wdp-4">Max</th>
+											<th class="wdp-5">Range</th>
+											<th class="wdp-3">Type</th>
+											<th class="wdp-3">Age1</th>
+											<th class="wdp-3">Age2</th>
+											<th class="wdp-3">Result</th>
+											<th class="wdp-3">Min</th>
+											<th class="wdp-3">Max</th>
+										</tr>
+									</thead>
+									<tbody id="orderItemContinaer">
+										@Html.EditorFor(model => model.TestSubMasterViewModels)
+									</tbody>
+									<tfoot>
+										<tr>
+											@*<td><input type="button" id="btnAdd" value="New" class="btn btn-primary btn-sm" style="width:auto;" /></td>*@
+											<td class="text-center">
+												<a href="#" id="btnAdd" type="button" class="mt-1"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+											</td>
+										</tr>
+									</tfoot>
+								</table>
+
+								<div id="DocumentContainer">
+									<div class="form-group ml-2 mr-2">
+										<textarea asp-for="TestDocumentain" class="form-control  small DocumentContainerDetails" rows="3"></textarea>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 text-right">
+					<input asp-for="AddNo" class="form-control  text-right" onkeypress="return isNumber(event);" title="No of Test Sub Rows" />
+				</div>
+				<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1">
+					<a href="#" id="btnAddSale" type="button" class="btn btn-sm btn-primary" style="width:auto">Add Rows</a>
+				</div>
+				<div class="col-12 col-sm-12 col-md-4 col-lg-3 col-xl-3">
+					<select asp-for="TempTestIdAdd" asp-items=" (await _repository.GetAllTestMaster(softwareheader.SoftwareMode == true ?(int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.TestCode).Select(x => new SelectListItem() { Text = x.TestCode, Value = x.Id.ToString() })" class="form-control  selectedItems">
+					</select>
+				</div>
+				<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1">
+					<a href="#" id="btnTestAdd" type="button" class="btn btn-sm btn-success" style="width:auto">Add Test</a>
+				</div>
+				@if (Model.Id > 0)
+				{
+					<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 text-right">
+						<input asp-for="FromNo" class="form-control  text-right" onkeypress="return isNumber(event)" title="Add Down Row No" />
+					</div>
+					<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 text-right">
+						<input asp-for="UptoNo" class="form-control  text-right" onkeypress="return isNumber(event)" title="No Of Rows" />
+					</div>
+					<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1">
+						<a href="#" id="btnBetweenTestAdd" type="button" class="btn btn-sm btn-danger" style="width:auto" title="Insert between Rows">Between</a>
+					</div>
+				}
+				else
+				{
+					<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 text-right">
+						<input asp-for="FromNo" class="form-control  text-right" onkeypress="return isNumber(event)" title="Add Down Row No" disabled />
+					</div>
+					<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 text-right">
+						<input asp-for="UptoNo" class="form-control  text-right" onkeypress="return isNumber(event)" title="No Of Rows" disabled />
+					</div>
+					<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1">
+						<a href="#" id="btnBetweenTestAdd" type="button" class="btn btn-sm btn-danger disabled" style="width:auto" title="Insert between Rows">Between</a>
+					</div>
+				}
+
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 text-right">
+					<input type="submit" value="@submitValue" class="btn btn-success btn-sm" id="submit" hidden />
+					<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+					<a asp-action="ListSearchTestFile" asp-controller="Master" asp-route-CompId1="@((int)(await userManager.GetUserAsync(User)).CompanyDetailId)" asp-route-ReportId="0" asp-route-TestGId="0" class="btn btn-primary btn-sm">List</a>
+					<a asp-action="CreateTestFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm" style="width:auto;">Add New</a>
+					<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+				</div>
+			</div>			
+		</form>
+
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/MyTestFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/MyTestFile.min.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#TestSubMasterTable1').height(screen.height - 450);
+		$('#TestSubMasterWidth').width(screen.width + 720);
+	</script>
+
+}

@@ -1,0 +1,125 @@
+﻿@model UnitMeasurementViewModel
+@inject IFinancialRepository _repository;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Create Product Unit File";
+	List<UnitMeasurementViewModel> stateViewModels = await _repository.GetAllProductMeasurement();
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomerGrade">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Product Unit  File</h3>
+		<form asp-action="CreateUnitMeasurementFile" asp-controller="Financial" method="post" autocomplete="off">
+			<input asp-for="Id" class="form-control" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="UnitCode" class="control-label col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"><input asp-for="UnitCode" class="form-control " /></div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="UnitName" class="control-label col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9"><input asp-for="UnitName" class="form-control  CustomText" /></div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="UQCId" class="control-label col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<select asp-for="UQCId" asp-items=" (await _repository.GetAllUQC()).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = (x.Code + '-' + x.Name), Value = x.Id.ToString() })" class="form-control  CustomText selectedItems">
+							</select>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+							<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="CreateUnitMeasurementFile" asp-controller="Financial" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="UnitMeasurementFileTable">
+			<table class="table  table-striped table-bordered table-hover table-responsive-sm  Vouch">
+				<thead class="bluevioletWhiteListHeader">
+					<tr>
+						<th class="wdp-5">
+							Id
+						</th>
+						<th class="wdp-5">
+							Code
+						</th>
+						<th>
+							Name
+						</th>
+						<th class="actionListButtonWidthGrade">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (stateViewModels.Count() > 0)
+					{
+						@foreach (var item in stateViewModels)
+						{
+							<tr>
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@item.UnitCode
+								</td>
+								<td>
+									@item.UnitName
+								</td>
+								<td class="text-center">
+									@if ((await authorizationService.AuthorizeAsync(User, "AddEditUnitMeasurementPolicy")).Succeeded)
+									{
+										<a asp-action="CreateUnitMeasurementFile" asp-controller="Financial" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-1x icon-color-green"></i></span></a>
+									}
+									@if ((await authorizationService.AuthorizeAsync(User, "DeleteUnitMeasurementPolicy")).Succeeded)
+									{
+										<a asp-action="DeleteUnitMeasurementRecord" asp-controller="Financial" asp-route-id=@item.Id onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-1x icon-color-red"></i></a>
+									}
+									</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="4">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+@section Scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<script>
+		$(document).ready(function () {
+			$('#UnitName').focus();
+		});
+		$('#UnitMeasurementFileTable').height(screen.height - 390);
+	</script>
+}

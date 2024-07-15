@@ -1,0 +1,138 @@
+﻿@model PurchaseRViewModel
+@inject IMasterRepository _repository;
+@inject ISettingRepository _srepository;
+@inject IGeneralMethod _grepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel companyDetailViewModels = await _srepository.GetCompanyById(((int)(await userManager.GetUserAsync(User)).CompanyDetailId));
+	string wordAmt = await _grepository.Customizedwords((double)Model.NetAmt);	
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="invoice-to">
+		<img src="~/ICON/Sysmble.jpg" class="logo" alt="logo" asp-append-version="true" />
+	</div>
+	<div class="branchCenter-details">
+		<h2>@companyDetailViewModels.CompName</h2>
+		<div style="margin-top:-15px;">
+			@companyDetailViewModels.Address1<br />
+				@(companyDetailViewModels.Address2)<br />
+				Email :- @companyDetailViewModels.EmailAddress<br />
+				Cell No. :- @(companyDetailViewModels.PhoneNo + " " + companyDetailViewModels.MobileNo  + " GST No. " + companyDetailViewModels.GSTNo )<br />
+				@(" State :" + companyDetailViewModels.StateInCompany.StateName + " District : " + companyDetailViewModels.DistrictInCompany.DistrictName)<br />
+				<h3 style="border-top: 3px solid black; border-bottom: 3px solid black;">Debit Note Bill </h3>
+		</div>
+	</div>
+
+	<div class="invoice-to" style="margin-top:-10px;padding-bottom:5px;">
+		Party's Name :- @(Model.LedgerMasterViewModel.PartyName) <br />
+		Address :- @(Model.LedgerMasterViewModel.Address1) <br />
+		Mobile No. :- @(Model.LedgerMasterViewModel.MobileNo1 + " GST No. " + Model.LedgerMasterViewModel.GSTNo)
+	</div>
+	<div class="invoice-details" style="margin-top: -10px; padding-bottom: 5px;">
+		<strong>Vouch. No. :-  @(Model.STVNo )</strong><br />
+		Date :- @(Model.STDate)<br />
+		State :- @(Model.LedgerMasterViewModel.StateLedgerMasterView.StateName)
+	</div>
+
+
+	<table class="table-responsive-sm border">
+		<thead>
+			<tr class="text-left">
+				<th class="wdp-4">Sr.No.</th>
+				<th class="wdp-46">Particulars</th>
+				<th class="wdp-10">Batch No.</th>
+				<th class="wdp-10">Exp.Date</th>
+				<th class="wdp-10 text-right">Qty(Case)</th>
+				<th class="wdp-10 text-right">Rate</th>
+				<th class="wdp-10 text-right">Amt</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model.PurchaseRDetailViewModels)
+			{
+				decimal totalcase = Math.Round(Convert.ToDecimal(item.TotalPcs) / Convert.ToDecimal(item.UnitCase),2);
+				<tr class="noBorder">
+					<td>@item.TempSrNo</td>
+					<td>@item.STItemName</td>
+					<td>@(item.BatchNo)</td>
+					<td>@item.ExpDate</td>
+					<td class="numeric-cell">@totalcase</td>
+					<td class="numeric-cell">@item.PurRate</td>
+					<td class="numeric-cell">@item.PurAmt</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+	<table class="table-responsive-sm">
+		<tbody>
+			<tr class="noBorder">
+				<td></td>
+				<td class="numeric-cell brdBottom">Total Amt. :- </td>
+				<td class="numeric-cell brdBottom">@Model.TotalAmt</td>
+			</tr>
+			@if (Model.DiscAmt > 0)
+			{
+				<tr class="noBorder">
+					<td></td>
+					<td class="numeric-cell brdBottom">Disc. Amt. :- </td>
+					<td class="numeric-cell brdBottom">@Model.DiscAmt</td>
+				</tr>
+			}
+			@if (Model.CGSTTotalAmt > 0)
+			{
+				<tr class="noBorder">
+					<td></td>
+					<td class="numeric-cell brdBottom">CGST Amt. :- </td>
+					<td class="numeric-cell brdBottom">@Model.CGSTTotalAmt</td>
+				</tr>
+			}
+			@if (Model.SGSTTotalAmt > 0)
+			{
+				<tr class="noBorder">
+					<td></td>
+					<td class="numeric-cell brdBottom">SGST Amt. :- </td>
+					<td class="numeric-cell brdBottom">@Model.SGSTTotalAmt</td>
+				</tr>
+			}
+			@if (Model.IGSTTotalAmt > 0)
+			{
+				<tr class="noBorder">
+					<td></td>
+					<td class="numeric-cell brdBottom">CGST Amt. :- </td>
+					<td class="numeric-cell brdBottom">@Model.IGSTTotalAmt</td>
+				</tr>
+			}
+			@if (Model.CessTotalAmt > 0)
+			{
+				<tr class="noBorder">
+					<td></td>
+					<td class="numeric-cell brdBottom">Cess Amt. :- </td>
+					<td class="numeric-cell brdBottom">@Model.CessTotalAmt</td>
+				</tr>
+			}
+				<tr >
+					<td> Rs.(In Words) :- @wordAmt</td>
+					<td class="numeric-cell brdBottom">Net Amt. :- </td>
+					<td class="numeric-cell brdBottom">@Model.NetAmt</td>
+				</tr>
+		</tbody>
+	</table>
+	
+	<div class="invoice-head clearfix">
+		<div class="invoice-to">
+			<strong>@User.Identity.Name</strong>
+		</div>
+		<div class="invoice-details">
+			<h5>Authorized Signature</h5>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,138 @@
+﻿@model TempReportViewFile
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@{
+	var softwareheader = softwareoption.Value;
+	ViewData["Title"] = "Report Print Serial No. File";
+	var Currentuser = await userManager.GetUserAsync(User);
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+	List<ReportGroupViewModel> reportGroupViewModels = await _mrepository.GetAllReportGroupMaster((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h5 class="text-center text-white HeadingColorRed">Change Print Report Serial No. Wise File</h5>
+		<form asp-action="CreateReportSerialNoFile" asp-controller="Master" method="post" id="purchaserecordform" autocomplete="off">
+			<input type="text" id="CompanyStateId" hidden />
+			<input asp-for="RowId" class="form-control" hidden />
+			<input asp-for="CurrentNo" class="form-control" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3" hidden >
+					<div class="form-group row">
+						<label asp-for="CompId" class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-4 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-7 col-lg-7 col-xl-8">
+							<input asp-for="CompId" class="form-control col-form-label-sm " value="@(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)" />
+						</div>						
+						<input asp-for="RptId" class="form-control  CustomText text-sm-right" />
+					</div>
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="stateScroll boxcolorback" id="OpenItemTable11">
+						<table class="table  table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="OpenItemTableWidth1">
+							<thead class="RedDarkWhiteListHeader">
+								<tr>
+									<th class="text-center wdp-3">##</th>			@*Action*@
+									<th class="wdp-2">SrNo.</th>
+									<th class="wdp-60">Report Name</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var item in reportGroupViewModels.OrderBy(x => x.TempNo))
+								{
+									<tr>
+										<td hidden>
+											@item.Id
+										</td>
+										<td class="text-center">
+											@*<a asp-action="AddOrderSerialNoFileItem" asp-controller="Master" asp-route-id=@item.Id><span><i class="fa fa-plus fa-1x icon-color-green"></i></span></a>*@
+											<a href="#" id="btnAdd_@item.Id" onclick="AddNewReportRow(@item.Id);" type="button" class="mt-1 enableOnInput"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+										</td>
+										<td>
+											@item.TempNo
+										</td>
+										<td>
+											@item.Name
+										</td>
+
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="stateScroll boxcolorback" id="OpenItemTable1">
+						<table class="table  table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="OpenItemTableWidth">
+							<thead class="RedDarkWhiteListHeader">
+								<tr>
+									<th class="text-center wdp-3">##</th>			@*Action*@
+									<th class="wdp-2">SrNo.</th>
+									<th class="wdp-60">Report Name</th>
+								</tr>
+							</thead>
+							<tbody id="orderItemContinaer">
+								@Html.EditorFor(model => model.TempReportDetailViewModels)
+							</tbody>
+							<!--<tfoot>
+						<tr>-->
+							@*<td><input type="button" id="btnAdd" value="New" class="btn btn-primary btn-sm" style="width:auto;" /></td>*@
+							<!--<td class="text-center">
+								<a href="#" id="btnAdd" type="button" class="mt-1"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+							</td>
+						</tr>
+					</tfoot>-->
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="col-12">
+					<div class="col-12">
+						<div class="form-group row ">
+							<div class="col-12 text-right CustLabel p-2">
+								<input type="submit" value="Save" class="btn btn-success  btn-sm" />
+								<a asp-action="CreateReportGroupFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-outline-info  btn-sm">Cancel</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+@section Scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/ReportSerialFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/ReportSerialFile.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#OpenItemTable1').height(screen.height - 290);
+		$('#OpenItemTableWidth').width(screen.width / 2 + 150);
+
+		$('#OpenItemTable11').height(screen.height - 290);
+		$('#OpenItemTableWidth1').width(screen.width / 2 + 150);
+
+		$('#OpenItemTable11 tr').bind('click', function (e) {
+			$(e.currentTarget).children('td, th').css('background-color', '#baf3bb');			
+		})		
+	</script>
+}

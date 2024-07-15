@@ -1,0 +1,102 @@
+﻿@model TitlesViewModel
+@inject ISettingRepository _repository;
+@{
+	ViewData["Title"] = "CreateTitles";
+	List<TitlesViewModel> TitlesViewModel = await _repository.GetAllTitles(0);
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+}
+
+<div class="container-fluid">
+	<div class="CustomBorderRelative">
+		<div class="CustomerGrade">
+			<h3 class="text-center text-white MixRedWhiteListHeader">Create Titles File</h3>
+			<form asp-action="CreateTitles" asp-controller="Administration" method="post">
+				<input asp-for="Id" class="form-control" hidden />
+				<div class="form-row">
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+						<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+							@if (ViewBag.isSuccess == true)
+							{
+								<div class="alert alert-success alert-dismissible fade show" role="alert">
+									<strong>@ViewBag.message </strong>
+									<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+							}
+						</div>
+					</div>
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+						<div class="form-group row">
+							<label asp-for="Name" class="control-label col-12 col-sm-12 col-md-2 col-lg-2 col-xl-4"></label>
+							<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-8"><input asp-for="Name" class="form-control " /></div>
+						</div>
+					</div>
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+						<div class="form-group row">
+							<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+								<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+								<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+								<a asp-action="CreateTitles" asp-controller="Administration" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+								<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+			<div class="stateScroll " id="Titlestable">
+				<table class="table  table-striped table-bordered table-hover table-responsive-sm  Vouch">
+					<thead class="bluevioletWhiteListHeader">
+						<tr>
+							<th class="wdp-5">
+								Id
+							</th>
+							<th>
+								Name
+							</th>
+							<th class="actionListButtonWidthGrade">
+								Action
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (TitlesViewModel.Count() > 0)
+						{
+							@foreach (var item in TitlesViewModel)
+							{
+								<tr>
+									<td>
+										@item.Id
+									</td>
+									<td>
+										@item.Name
+									</td>
+									<td class="text-center">
+										<a asp-action="CreateTitles" asp-controller="Administration" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-2x icon-color-green"></i></span></a>
+										<a asp-action="DeleteTitlesRecord" asp-controller="Administration" asp-route-id=@item.Id onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-2x icon-color-red"></i></a>
+									</td>
+								</tr>
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="3">
+									<h3 class="text-danger text-center">No Record found......</h3>
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$(document).ready(function () {
+			$('#Name').focus();
+		});
+		$('#Titlestable').height(screen.height - 350);
+	</script>
+}

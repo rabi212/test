@@ -1,0 +1,175 @@
+﻿@model UploadPhotoFrontViewModel
+@inject ISettingRepository _repository;
+@{
+	ViewData["Title"] = "CreateUploadPhotoFile";
+	var photopath = "~/ImagesFront/" + (Model.ExitPhotoPath ?? "logo.jpg");
+	List<UploadPhotoFrontViewModel> detailViewModels = await _repository.GetAllUploadPhotoFile();
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h3 class="text-center text-white bg-secondary">Upload Photos File</h3>
+		<form enctype="multipart/form-data" asp-action="CreateUploadPhotoFile" asp-controller="Administration" method="post">
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center"><div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany" style="border-bottom:3px solid blue;"></div></div>
+				<div class="col-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+					<div class="form-group row" hidden>
+						<label asp-for="Id" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<input asp-for="Id" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Title" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<input asp-for="Title" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Descriptions" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<input asp-for="Descriptions" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="GroupName" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-5">
+							<input asp-for="GroupName" class="form-control form-control-sm CustomText" />
+						</div>
+						<label asp-for="Rate" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="Rate" class="form-control form-control-sm text-sm-right CustomText" onkeypress="return isNumber(event)" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Photo" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<div class="custom-file">
+								<input asp-for="Photo" class="form-control form-control-sm custom-file-input" accept="image/jpeg, image/jpg, image/png, image/bmp" onchange="LoadImage(this,document.getElementById('user_img'))" />
+								<label class="custom-file-label">Choose File------</label>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+					<div class="form-group row" hidden>
+						<label asp-for="ExitPhotoPath" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<input asp-for="ExitPhotoPath" class="form-control form-control-sm" />
+						</div>
+					</div>
+
+					<div class="form-group row col-sm-4 offset-4">
+						@*<img src="@photopath" class="imgThumbnail" asp-append-version="true" />*@
+						<div>
+							<img id="user_img" src="@photopath" style="width:160px;height:140px; border:solid; margin-top:5px;" asp-append-version="true" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					@if (ViewBag.isSuccess)
+					{
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>@ViewBag.message </strong>
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+					}
+				</div>
+
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="Save" class="btn btn-success btn-sm" />
+							<a asp-action="CreateUploadPhotoFile" asp-controller="Administration" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div style="overflow: hidden;" id="DivHeaderRow">
+		</div>
+		<div style="overflow:scroll;" onscroll="OnScrollDiv(this)" id="DivMainContent">
+			<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm" id="Table4">
+				<thead style="background-color:Highlight;color:white;">
+					<tr>
+						<th style="width:80px;">
+							Id
+						</th>
+						<th>
+							Title
+						</th>
+						<th>
+							Descriptions
+						</th>
+						<th style="width:140px;">
+							Product Group
+						</th>
+						<th class="text-sm-right">
+							MRP
+						</th>
+						<th style="text-align:center;width:120px;">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (detailViewModels.Count() > 0)
+					{
+						@foreach (var item in detailViewModels)
+						{
+							<tr class="small">
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@item.Title
+								</td>
+								<td>
+									@item.Descriptions
+								</td>
+								<td>
+									@item.GroupName
+								</td>
+								<td class="text-sm-right">
+									@item.Rate
+								</td>
+								<td>
+									<a asp-action="CreateUploadPhotoFile" asp-controller="Administration" asp-route-id=@item.Id class="btn btn-success btn-sm" style="width:auto"><span></span>Edit</a>
+									<a asp-action="DeleteUploadPhotoFile" asp-controller="Administration" asp-route-id=@item.Id class="btn btn-danger btn-sm" style="width:auto" onclick="return confirm ('Are you sure you want to delete record : @item.Id')">Delete</a>
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="6">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+
+				</tbody>
+			</table>
+		</div>
+		<div id="DivFooterRow" style="overflow:hidden">
+		</div>
+	</div>
+</div>
+@section scripts {
+	<script>
+		$(document).ready(function () {
+			$('.custom-file-input').on("change", function () {
+				var filename = $(this).val().split("\\").pop();
+				$(this).next('.custom-file-label').html(filename);
+			});
+		});
+		//window.onload = function () {
+			//MakeStaticHeader('Table1',420, 1320, 32, false);
+			//MakeStaticHeader('Table4', (screen.height - 530), (screen.width - 86), 32, false);
+		//}
+		$('#DivMainContent').height(screen.height - 460);
+	</script>
+}

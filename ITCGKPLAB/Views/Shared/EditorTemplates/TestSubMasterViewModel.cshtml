@@ -1,0 +1,91 @@
+﻿@model TestSubMasterViewModel
+<tr>
+	<td class="text-center">
+		@*<a href="#" id="Delbutton" type="button" onclick="deleteRow(this)" class="mt-1"><i class="fas fa-times fa-1x icon-color-red"></i></a>*@
+		<input id="Delbutton" type="button" onclick="deleteRow(this)" value="Del" class="btn btn-info btn-sm" style="width:auto;" />
+	</td>
+	<td>
+		<input asp-for="TempNo" class="form-control " readonly />
+	</td>
+	<td class="bg-white">
+		<textarea asp-for="TestDetails" class="form-control   ModeDetailRecordX" rows="3" onfocus="FindRowIndex(this);">
+		</textarea>
+	</td>
+	<td>
+		<input asp-for="ColFirst" class="form-control  " onfocus="FindRowIndex(this);" />
+	</td>
+	<td>
+		<input asp-for="ColSecond" class="form-control " />
+	</td>
+	<td>
+		<input asp-for="ColThird" class="form-control " />
+	</td>
+	<td>
+		<input asp-for="ColFourth" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" />
+	</td>
+	<td>
+		<input asp-for="ColFifth" class="form-control " />
+	</td>
+	<td>
+		<input asp-for="ColSixth" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" />
+	</td>
+	<td class="text-center">
+		<input class="form-check-inline" asp-for="VisualTrueFalse" />
+	</td>
+	<td>
+		<select asp-for="TestLocked" class="form-control  selectedItems">
+			<option value="N">N</option>
+			<option value="L">L</option>
+			<option value="M">M</option>
+			<option value="Y">Y</option>
+			<option value="S">S</option>
+			<option value="B">B</option>
+		</select>
+	</td>
+	<td>
+		<select asp-for="Gender" class="form-control  selectedItems">
+			<option value="A">A</option>
+			<option value="M">M</option>
+			<option value="F">F</option>
+		</select>
+	</td>
+	<td>
+		<input asp-for="Units" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" />
+	</td>
+	<td>
+		<input asp-for="FromRange" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" />
+	</td>
+	<td>
+		<input asp-for="RangeSymble" class="form-control  text-sm-right" onfocus="FindRowIndex(this)" />
+	</td>
+	<td>
+		<input asp-for="UptoRange" class="form-control  text-sm-right" onblur="GrandRange();" />
+	</td>
+
+	<td>
+		<input asp-for="RangeDetails" class="form-control  text-sm-right" />
+	</td>
+	<td>
+		<select asp-for="AgeType" class="form-control  selectedItems">
+			<option value="A">A</option>
+			<option value="Y">Y</option>
+			<option value="M">M</option>
+			<option value="D">D</option>
+		</select>
+	</td>
+	<td>
+		<input asp-for="FromAge" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);"/>
+	</td>
+	<td>
+		<input asp-for="UptoAge" class="form-control  text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);"/>
+	</td>
+	<td>
+		<input asp-for="DefaultResult" class="form-control  text-sm-right" />
+	</td>
+	<td>
+		<input asp-for="MiniRange" class="form-control  text-sm-right" onkeypress="return isNumber(event)" />
+	</td>
+	<td>
+		<input asp-for="MaxRange" class="form-control  text-sm-right" onkeypress="return isNumber(event)" />
+	</td>
+</tr>

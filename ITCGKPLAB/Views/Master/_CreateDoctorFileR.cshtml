@@ -1,0 +1,117 @@
+﻿@model DoctorViewModel
+<div class="modal fade" id="addNewDoctor">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title" id="addNewDoctorLable"> Add Doctor</h4>
+				<button type="button" class="close" data-dismiss="modal">
+					<span>x</span>
+				</button>
+			</div>
+			<div class="modal-body" style="background:#aadff6;">
+				@*<form action="CreateDoctorFileR">*@
+				<form action="CreateDoctorFileR">
+					<div class="form-group row" hidden>
+						<label asp-for="Code"></label>
+						<input asp-for="Id" class="form-control" />
+						<input asp-for="Code" class="form-control" />
+						<input asp-for="CompId" class="form-control" />
+						<span asp-validation-for="Code" class="text-danger"></span>
+					</div>
+					<div class="form-row">
+						<div class="col-12">
+							<div class="form-group row">
+								<label asp-for="Name" class="col-3 col-form-label  text-left"></label>
+								<div class="col-9">
+									<input asp-for="Name" class="form-control " />
+									<span asp-validation-for="Name" class="text-danger"></span>
+								</div>
+							</div>
+
+							<div class="form-group row">
+								<label asp-for="Address1" class="col-3 col-form-label  text-left"></label>
+								<div class="col-9">
+									<input asp-for="Address1" class="form-control " />
+									<span asp-validation-for="Address1" class="text-danger"></span>
+								</div>
+							</div>
+
+							<div class="form-group row">
+								<label asp-for="Address2" class="col-3 col-form-label  text-left"></label>
+								<div class="col-9">
+									<input asp-for="Address2" class="form-control " />
+									<span asp-validation-for="Address2" class="text-danger"></span>
+								</div>
+							</div>
+
+							<div class="form-group row">
+								<label asp-for="MobileNo" class="col-3 col-form-label  text-left"></label>
+								<div class="col-9">
+									<input asp-for="MobileNo" class="form-control " />
+									<span asp-validation-for="MobileNo" class="text-danger"></span>
+								</div>
+							</div>
+
+							<div class="form-group row">
+								<label asp-for="Eduction" class="col-3 col-form-label  text-left"></label>
+								<div class="col-9">
+									<input asp-for="Eduction" class="form-control " />
+									<span asp-validation-for="Eduction" class="text-danger"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 anyScrollTestDoctor" hidden>
+						<br />
+						@if (Model.DoctorDetailsMasterViewModel.Any())
+						{
+							for (int i = 0; i < Model.DoctorDetailsMasterViewModel.Count; i++)
+							{
+								if (i == 0)
+								{
+									<div class="form-group row">
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].Id" class="form-control " hidden />
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].CompId" class="form-control " hidden />
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].TestGId" class="form-control " hidden />
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].TestGroupMasterViewModel.ShortName" class="form-control  CustomText" hidden />
+										<div class="col-sm-6">
+											<input asp-for="@Model.DoctorDetailsMasterViewModel[i].TestGroupMasterViewModel.Name" class="form-control  CustomText" readonly />
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+											<input asp-for="@Model.DoctorDetailsMasterViewModel[i].IPPer1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);AutoZeroSet();" />
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+											<input asp-for="@Model.DoctorDetailsMasterViewModel[i].IPAmt1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);AutoZeroSet();" />
+										</div>
+									</div>
+								}
+								else
+								{
+									<div class="form-group row">
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].Id" class="form-control " hidden />
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].CompId" class="form-control " hidden />
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].TestGId" class="form-control " hidden />
+										<input asp-for="@Model.DoctorDetailsMasterViewModel[i].TestGroupMasterViewModel.ShortName" class="form-control  CustomText" hidden />
+										<div class="col-sm-6">
+											<input asp-for="@Model.DoctorDetailsMasterViewModel[i].TestGroupMasterViewModel.Name" class="form-control  CustomText" readonly />
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+											<input asp-for="@Model.DoctorDetailsMasterViewModel[i].IPPer1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);AutoZeroSet();" />
+										</div>
+										<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+											<input asp-for="@Model.DoctorDetailsMasterViewModel[i].IPAmt1" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);AutoZeroSet();" />
+										</div>
+									</div>
+								}
+							}
+						}
+					</div>
+				</form>
+			</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-sm btn-primary" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-sm btn-primary" data-save="modal">Save</button>
+				</div>
+		</div>
+	</div>
+</div>

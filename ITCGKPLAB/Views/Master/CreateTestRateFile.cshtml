@@ -1,0 +1,96 @@
+﻿@model TestRateViewModel
+@inject IMasterRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+@{
+	ViewData["Title"] = "Test Rate File";
+	var softwareheader = softwareoption.Value;
+	List<TestMasterViewModel> StateViewModel = await _repository.GetAllTestMasterCompany(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1);
+	string submitValue = "Update";
+}
+<div class="CustomBorderRelative">
+	<div class="CustomerGrade">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Bulk Test Rate Change File</h3>
+		<form asp-action="CreateTestRateFile" asp-controller="Master" method="post" id="testrateform" autocomplete="off">
+			<input asp-for="CurrentNo" class="form-control  CustomText" hidden />
+			<input asp-for="CompId" class="form-control" value="@(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="Id" class="control-label col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3"></label>						
+						<div class="col-12 col-sm-12 col-md-9 col-lg-7 col-xl-7">
+							<select asp-for="Id" asp-items=" (await _repository.GetAllTestGroupMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x => x.Name) .Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetTotalPageNoCounter();">
+							</select>
+						</div>						
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="PageNo" class="form-control  text-right" onkeypress="return isNumber(event)" title="Page No." onblur="AddAllPatientValue();" />
+						</div>
+					</div>
+
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<div class="stateScroll boxcolorback" id="TestPreRateTable1">
+								<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="TestPreResultrWidth">
+									<thead class="RedDarkWhiteListHeader small" id="tthead">
+										<tr>
+											<th class="wdp-7">SrNo.</th>
+											<th class="wdp-30">Test Code</th>
+											<th class="wdp-8 text-right">Rate</th>
+											<th class="wdp-8 text-right">PP Rate</th>
+											<th class="wdp-8 text-right">CC Rate</th>
+										</tr>
+									</thead>
+									<tbody id="orderItemContinaer">
+										@Html.EditorFor(model => model.TestRateDetailViewModels)
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="TotalPageNo" class="control-label col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<input asp-for="TotalPageNo" class="form-control  " title="Total Page No." readonly />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" id="submit" hidden />
+							<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/MyTestRateFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/MyTestRateFile.min.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#TestPreRateTable1').height(screen.height - 350);
+			//$('#TestGrouptable1').height(screen.height - 380);
+	</script>
+}

@@ -1,0 +1,301 @@
+﻿@model CompanyDetailViewModel
+@inject ISettingRepository _repository;
+@{
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+	ViewData["Title"] = "CreateCompany";
+	List<CompanyDetailViewModel> detailViewModels = await _repository.GetAllCompany(0);
+	var photopath = "~/CenterLogo/" + (Model.ExitPhotoPath ?? "logo.jpg");
+	var Signaturephotopath = "~/CenterSignature/" + (Model.ExitSignaturePhotoPath ?? "logo.jpg");
+	var SignaturephotopathLeft = "~/CenterSignatureLeft/" + (Model.ExitSignaturePhotoPathLeft ?? "logo.jpg");
+}
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h4 class="text-center text-white HeadingColorRed">Create Company Details</h4>
+		<form method="post" asp-action="CreateCompany" asp-controller="Administration" enctype="multipart/form-data">
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="CompName" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label "></label>
+						<input asp-for="Id" class="form-control " hidden />
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="CompName" class="form-control " />
+							<input asp-for="ExitFooterReport" class="form-control " hidden />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Address1" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="Address1" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Address2" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="Address2" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="Address3" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="Address3" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="City" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="City" class="form-control  CustomText" />
+						</div>
+					</div>
+
+					<div class="form-group row">
+						<label asp-for="StateId" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<select asp-for="StateId" asp-items=" (await _repository.GetAllState(0)).OrderBy(x => x.StateName).Select(x => new SelectListItem() { Text = x.StateName, Value = x.StateId.ToString() })" class="form-control  CustomText selectedItems" onblur="GetDistrictList();GetNewSrNo()">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="DistId" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<select asp-for="DistId" asp-items=" (await _repository.GetAllDistrict(0)).OrderBy(x => x.DistrictName).Select(x => new SelectListItem() { Text = x.DistrictName, Value = x.DistId.ToString() })" class="form-control  CustomText selectedItems" onblur="GetNewSrNo()">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PinNo" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="PinNo" class="form-control  CustomText" />
+						</div>
+						<label asp-for="PhoneNo" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="PhoneNo" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="MobileNo" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="MobileNo" class="form-control  CustomText" />
+						</div>
+						<label asp-for="GSTNo" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="GSTNo" class="form-control  CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="EmailAddress" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<input asp-for="EmailAddress" class="form-control  CustomText" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					
+					<div class="form-group row">
+						<label asp-for="Jurisdiction" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="Jurisdiction" class="form-control  " />
+						</div>
+						<label asp-for="TransCode" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="TransCode" class="form-control  " />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="FromDate" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
+							<input asp-for="FromDate" class="form-control  CustomText customdatetime" />
+						</div>
+						<label asp-for="UptoDate" class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+							<input asp-for="UptoDate" class="form-control  CustomText customdatetime" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<input asp-for="ExitSignaturePhotoPathLeft" class="form-control " hidden />
+						<label asp-for="SignaturePhotoPathLeft" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+							<div class="custom-file">
+								<input asp-for="SignaturePhotoPathLeft" class="form-control  custom-file-input" accept="image/jpeg, image/jpg, image/png, image/bmp" onchange="LoadImage(this,document.getElementById('user_img2'))" />
+								<label class="custom-file-label">Choose File------</label>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<img id="user_img2" src="@SignaturephotopathLeft" style="width:80px;height:50px; border:solid; margin-top:-5px;" asp-append-version="true" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<input asp-for="ExitPhotoPath" class="form-control " hidden />
+						<label asp-for="Photo" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+							<div class="custom-file">
+								<input asp-for="Photo" class="form-control  custom-file-input" accept="image/jpeg, image/jpg, image/png, image/bmp" onchange="LoadImage(this,document.getElementById('user_img'))" />
+								<label class="custom-file-label">Choose File------</label>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<img id="user_img" src="@photopath" style="width:80px;height:50px; border:solid; margin-top:-5px;" asp-append-version="true" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<input asp-for="ExitSignaturePhotoPath" class="form-control " hidden />
+						<label asp-for="SignaturePhoto" class="col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-7 col-xl-7">
+							<div class="custom-file">
+								<input asp-for="SignaturePhoto" class="form-control  custom-file-input" accept="image/jpeg, image/jpg, image/png, image/bmp" onchange="LoadImage(this,document.getElementById('user_img1'))" />
+								<label class="custom-file-label">Choose File------</label>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<img id="user_img1" src="@Signaturephotopath" style="width:80px;height:50px; border:solid; margin-top:-5px;" asp-append-version="true" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="form-check col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustomText text-right">
+							<input asp-for="SignaturePrintLeft" class="form-check-input" />
+							<label class="form-check-label" asp-for="SignaturePrintLeft">
+								Covid Left Print
+							</label>
+						</div>
+						<div class="form-check col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustomText text-right">
+							<input asp-for="PhotoPathPrint" class="form-check-input" />
+							<label class="form-check-label" asp-for="PhotoPathPrint">
+								Covid Right Print
+							</label>
+						</div>
+						<div class="form-check col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4 CustomText text-right">
+							<input asp-for="SignaturePrint" class="form-check-input" />
+							<label class="form-check-label" asp-for="SignaturePrint">
+								Signature Print Report
+							</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 CustomTextbranch">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success btn-sm" id="submit" hidden />
+							<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							<a asp-action="CreateCompany" asp-controller="Administration" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="stateScroll" id="Table1">
+			<table class="table  table-striped table-bordered table-hover table-responsive-sm SaleRVouch">
+				<thead class="bg-dark text-white">
+					<tr>
+						<th class="actionListIdWidth">
+							Id
+						</th>
+						<th>
+							Branch Name
+						</th>
+						<th>
+							Address
+						</th>
+						<th>
+							Contact No.
+						</th>
+						<th class="wdp-7">
+							End Date
+						</th>
+						<th class="wdp-4">
+							Days
+						</th>
+						<th class="actionListButtonWidth">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (detailViewModels.Count() > 0)
+					{
+						@foreach (var item in detailViewModels)
+						{
+
+							DateTime date1 = Convert.ToDateTime(item.ValidedDate);
+							int totaldays = (int)(date1 - DateTime.Now.Date).Days;
+							string colortxt = "None";
+							if (totaldays <= 7)
+							{
+								colortxt = "background-color:red;color:white;";
+							}
+							<tr>
+								<td>
+									@item.Id
+								</td>
+								<td>
+									@item.CompName
+								</td>
+								<td>
+									@item.Address1
+								</td>
+								<td>
+									@(item.PhoneNo + " " + item.MobileNo)
+								</td>
+								<td>
+									@item.UptoDate
+								</td>
+								@if (totaldays <= 7)
+								{
+									<td style="@colortxt" class="text-center blink_me">
+										<b> @totaldays</b>
+									</td>
+								}
+								else {
+									<td style="@colortxt" class="text-center">
+										<b> @totaldays</b>
+									</td>
+								}
+								<td class="text-center">
+									<a asp-action="CreateCompany" asp-controller="Administration" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-2x icon-color-green"></i></span></a>
+									<a asp-action="DeleteCompRecord" asp-controller="Administration" asp-route-id=@item.Id onclick="return confirm ('Are you sure you want to delete record : @item.Id')"><i class="fas fa-times fa-2x icon-color-red"></i></a>
+
+									@*<a asp-action="CreateCompany" asp-controller="Administration" asp-route-id=@item.Id class="btn btn-success btn-sm" style="width:auto;"><span>Edit</span></a>
+						<a asp-action="DeleteCompRecord" asp-controller="Administration" asp-route-id=@item.Id class="btn btn-danger btn-sm" style="width:auto" onclick="return confirm ('Are you sure you want to delete record : @item.Id')">Delete</a>*@
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="4">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/MyCompany.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/MyCompany.min.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#Table1').height(screen.height - 560);
+	</script>
+}

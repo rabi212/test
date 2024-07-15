@@ -1,0 +1,68 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@inject IAuthorizationService authorizationService
+@inject IAccountRepository _repository;
+@{
+	ViewData["Title"] = "ListRoles";
+	var model = await _repository.GetRoleListAsync();
+}
+
+<div class="container">
+	<h2 class="bg-dark text-white">All Roles</h2>
+
+	@if (model.Any())
+	{
+		<a class="btn btn-primary mb-3" style="width:auto" asp-action="CreateRole"
+		   asp-controller="Administration">Add new role</a>
+		<a class="btn btn-primary mb-3" style="width:auto" asp-action="Index"
+		   asp-controller="Home">Cancel</a>
+		foreach (var role in model)
+		{
+			<div class="card mb-3">
+				<div class="card-header bg-info text-white">
+					Role Id : @role.Id
+				</div>
+				<div class="card-body">
+					<h5 class="card-title">@role.Name</h5>
+				</div>
+				<div class="card-footer">
+					<form asp-action="DeleteRole" asp-route-id="@role.Id" method="post">
+						@if ((await authorizationService.AuthorizeAsync(User, "EditRolePolicy")).Succeeded)
+						{
+							<a class="btn btn-primary" asp-action="EditRole"
+							   asp-controller="Administration" asp-route-id="@role.Id">
+								Edit
+							</a>
+						}
+						<span id="confirmDeleteSpan_@role.Id" style="display:none">
+							<span>Are you sure you want to delete ?</span>
+							<button type="submit" class="btn btn-danger">Yes</button>
+							<a href="#" class="btn btn-danger"
+							   onclick="confirmDelete('@role.Id',false)">No</a>
+						</span>
+						<span id="deleteSpan_@role.Id">
+							<a href="#" class="btn btn-danger"
+							   onclick="confirmDelete('@role.Id',true)">Delete</a>
+						</span>
+					</form>
+				</div>
+			</div>
+		}
+	}
+	else
+	{
+		<div class="card">
+			<div class="card-header">
+				No roles created yet
+			</div>
+			<div class="card-body">
+				<div class="card-title">
+					Use the button to create a roles
+				</div>
+				<a class="btn btn-primary" style="width:auto"
+				   asp-controller="Administration" asp-action="CreateRole">
+					Create New Roles
+				</a>
+			</div>
+		</div>
+	}
+</div>

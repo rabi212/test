@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "defaultProvider": "cdnjs",
+  "libraries": [
+    {
+      "library": "jquery@3.6.0",
+      "destination": "wwwroot/lib/jquery/"
+    },
+    {
+      "library": "twitter-bootstrap@4.6.0",
+      "destination": "wwwroot/lib/twitter-bootstrap/"
+    },
+    {
+      "library": "jqueryui@1.12.1",
+      "destination": "wwwroot/lib/jqueryui/"
+    },
+    {
+      "library": "popper.js@2.9.2",
+      "destination": "wwwroot/lib/popper.js/"
+    },
+    {
+      "library": "font-awesome@5.15.3",
+      "destination": "wwwroot/lib/font-awesome/"
+    },
+    {
+      "library": "jquery-validate@1.19.2",
+      "destination": "wwwroot/lib/jquery-validate/"
+    },
+    {
+      "library": "jquery-validation-unobtrusive@3.2.12",
+      "destination": "wwwroot/lib/jquery-validation-unobtrusive/"
+    },
+    {
+      "library": "summernote@0.8.18",
+      "destination": "wwwroot/lib/summernote/"
+    },
+    {
+      "library": "jquery-ui-timepicker-addon@1.6.3",
+      "destination": "wwwroot/lib/jquery-ui-timepicker-addon/"
+    },
+    {
+      "library": "jquery-idletimer@1.0.0",
+      "destination": "wwwroot/lib/jquery-idletimer/"
+    },
+    {
+      "provider": "jsdelivr",
+      "library": "bootstrap-chosen@1.4.2",
+      "destination": "wwwroot/lib/bootstrap-chosen/"
+    }
+  ]
+}

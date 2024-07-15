@@ -1,0 +1,11 @@
+﻿@inject IUserService _signInManager;
+@{
+	if (await _signInManager.isAuthenticatedUser())
+	{
+		Layout = "_LayoutAdminUser";
+	}
+	else
+	{
+		Layout = "_Layout";
+	}
+}

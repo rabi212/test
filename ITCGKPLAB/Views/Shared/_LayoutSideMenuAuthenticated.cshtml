@@ -1,0 +1,140 @@
+﻿@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@inject IAuthorizationService authorizationService;
+<div id="mySidebar" class="sidebar" onmouseover="toggleSidebar()" onmouseout="toggleSidebar()">
+	<nav class='animated bounceInDown'>
+		<ul>
+			<li class="sub-menu">
+				<a href="#" data-toggle="collapse" data-target="#sub1" aria-expanded="false" aria-controls="sub1"><span><i class="material-icons"><i class="fas fa-users-cog image-widthHeight"></i></i><span class="icon-text"></span>Setting</span><div class="fa fa-caret-down right"></div></a>
+				<ul class="nav collapse" id="sub1" style="margin-left:35px;">
+					<li><a asp-action="ChangePassword" asp-controller="Account">Change Password</a></li>
+					@if (User.IsInRole("SuperAdmin"))
+					{
+						<li><a asp-action="ListUsers" asp-controller="Administration">List Users</a></li>
+						<li><a asp-action="ListRoles" asp-controller="Administration">List Roles</a></li>
+						<li><a asp-action="CreateFontCustom" asp-controller="Administration" class="border-top border-danger">Fonts File</a></li>
+						<li><a asp-action="CreateTitles" asp-controller="Administration">Title File</a></li>
+						<li><a asp-action="CreateState" asp-controller="Administration">State File</a></li>
+						<li><a asp-action="CreateDistrict" asp-controller="Administration">District File</a></li>
+						<li><a asp-action="CreateCompany" asp-controller="Administration">Company Details</a></li>
+						<li><a asp-action="CreateSMSKey" asp-controller="Administration" class="border-top border-primary">SMS Configuration</a></li>
+						<li><a asp-action="CreateSMSFile" asp-controller="Administration">Send SMS</a></li>
+						<li><a asp-action="CreateMoneyMaster" asp-controller="Administration">Money Transfer Configuration</a></li>
+						@*<li><a asp-action="CreateNoticeBoardFile" asp-controller="Administration">Upload Notice Board</a></li>*@
+						<li><a asp-action="CreateUploadPhotoFile" asp-controller="Administration">Upload Photo Gallary</a></li>
+						<li><a asp-action="CreateDeletePatientRecord" asp-controller="Master">Delete Record</a></li>
+						@if (softwareoption.Value.SoftwareMode)
+						{
+							<li><a asp-action="CreateTransferTest" asp-controller="Master">Transfer Test</a></li>
+
+						}
+					}
+					else if (User.IsInRole("Admin"))
+					{
+						<li><a asp-action="ListUsers" asp-controller="Administration">List Users</a></li>
+					}
+				</ul>
+			</li>
+		</ul>
+		<ul>
+			<li class="sub-menu">
+				<a href="#" data-toggle="collapse" data-target="#sub2"><span><i class="material-icons"><i class="far fa-file-image image-widthHeight"></i></i><span class="icon-text"></span>Master File</span><div class="fa fa-caret-down right"></div></a>
+				<ul class="nav collapse" id="sub2" style="margin-left:35px;">
+					<li><a asp-action="PageSetupList" asp-controller="Master">Page Setup</a></li>
+					<li><a asp-action="CreateMedMasterFile" asp-controller="Master">Medical Master File</a></li>
+					<li><a asp-action="CreateAreaFile" asp-controller="Master">Area File</a></li>
+					<li><a asp-action="CreateClientFile" asp-controller="Master">Client File</a></li>
+					<li><a asp-action="CreateAgent" asp-controller="Master">Executive File</a></li>
+					<li><a asp-action="CreateTestGroupFile" asp-controller="Master">Test Goup Master File</a></li>
+					<li><a asp-action="CreateDoctorInLabsFile" asp-controller="Master">Doctor In Lab File</a></li>
+					<li><a asp-action="CreateDoctorFile" asp-controller="Master">Doctor Master File</a></li>
+					<li><a asp-action="CreateReportGroupFile" asp-controller="Master">Report Master File</a></li>
+					<li><a asp-action="CreateTestDocFile" asp-controller="Master">Test Document File</a></li>
+					<li><a asp-action="CreateTestFormulaFile" asp-controller="Master">Test Formula File</a></li>
+					<li><a asp-action="CreateTestFile" asp-controller="Master">Test Master File</a></li>
+					<li><a asp-action="CreateTestRateFile" asp-controller="Master">Bulk Test Rate Change</a></li>
+					<li class="menudotline"></li>
+					<li><a asp-action="CreateTestResultFile" asp-controller="Master">Pre-Result File</a></li>
+					<li><a asp-action="CreateRegistrationFile" asp-controller="Master">Registration File</a></li>
+					}
+				</ul>
+			</li>
+		</ul>
+		<ul>
+			<li class="sub-menu">
+				<a href="#" data-toggle="collapse" data-target="#sub3"><span><i class="material-icons"><i class="fas fa-receipt image-widthHeight"></i></i><span class="icon-text"></span>Financial File</span><div class="fa fa-caret-down right"></div></a>
+				<ul class="nav collapse" id="sub3" style="margin-left:35px;">
+						<li><a asp-action="AccountGroupFile" asp-controller="Financial">Account Group File</a></li>
+						<li><a asp-action="AddressBookFile" asp-controller="Financial">Account Master File</a></li>
+						<li><a asp-action="AccountConfigureList" asp-controller="Financial">Configuration Account</a></li>
+						<li class="menudotline"></li>
+						<li><a asp-action="CreateProductCompanyFile" asp-controller="Financial">Product Company File</a></li>
+						<li><a asp-action="CreateUQCFile" asp-controller="Financial">Unique Quantity Code File</a></li>
+						<li><a asp-action="CreateUnitMeasurementFile" asp-controller="Financial">Product Unit File</a></li>
+						<li><a asp-action="CreatePackingFile" asp-controller="Financial">Packing Master File</a></li>
+						<li><a asp-action="CreateItemGroupFile" asp-controller="Financial">Item Group File</a></li>
+						<li><a asp-action="CreateItemFile" asp-controller="Financial">Item Master File</a></li>
+						<li class="menudotline"></li>
+						<li><a asp-action="SearchOpenningItemFile" asp-controller="Financial">Openning Stock File</a></li>
+					</ul>
+			</li>
+		</ul>
+		<ul>
+			<li class="sub-menu">
+				<a href="#" data-toggle="collapse" data-target="#sub4"><span><i class="material-icons"><i class="far fa-handshake image-widthHeight"></i></i><span class="icon-text"></span>PayRoll File</span><div class="fa fa-caret-down right"></div></a>
+				<ul class="nav collapse" id="sub4" style="margin-left:35px;">
+						<li><a asp-action="CreateAgent" asp-controller="Master">Executive File</a></li>
+						<li class="border-danger border-top"><a asp-action="AutomationPayBillFile" asp-controller="PayBill">Pay Bill Automation</a></li>
+						<li><a asp-action="SearchPayBillFile" asp-controller="PayBill">Update Salary</a></li>
+						<li class="border-success border-top"><a asp-action="ExecutiveMonthlyPayBillFile" asp-controller="PayBill">Employee List</a></li>
+						<li><a asp-action="MonthlySheetPayBillFile" asp-controller="PayBill">Monthly Salary Sheet</a></li>
+						<li><a asp-action="ALLPayBillFile" asp-controller="PayBill">Pay Slip</a></li>
+						<li><a asp-action="ExecutiveMonthlyBankStatement" asp-controller="PayBill">Bank Statement</a></li>
+						<li><a asp-action="ExecutiveMonthlyDeductation" asp-controller="PayBill">Deducation List</a></li>
+					</ul>
+			</li>
+		</ul>
+		<ul>
+			<li class="sub-menu">
+				<a href="#" data-toggle="collapse" data-target="#sub5"><span><i class="material-icons"><i class="fas fa-receipt image-widthHeight"></i></i><span class="icon-text"></span>Transaction File</span><div class="fa fa-caret-down right"></div></a>
+				<ul class="nav collapse" id="sub5" style="margin-left:35px;">
+					<li><a asp-action="PatientDueanalysis" asp-controller="Master">Due Analysis</a></li>
+					<li class="border-warning border-bottom"><a asp-action="SearchPatientDueReciptFile" asp-controller="Master">Due Receipt Voucher</a></li>
+					<li><a asp-action="SearchVoucherFile" asp-route-vouchertype="Receipt" asp-controller="Transaction">Receipt Voucher</a></li>
+					<li><a asp-action="SearchVoucherFile" asp-route-vouchertype="Payment" asp-controller="Transaction">Payment Voucher</a></li>
+					<li class="border-danger border-top"><a asp-action="SearchVoucherFile" asp-route-vouchertype="Bank Receipt" asp-controller="Transaction">Bank Receipt Voucher</a></li>
+					<li><a asp-action="SearchVoucherFile" asp-route-vouchertype="Bank Payment" asp-controller="Transaction">Bank Payment Voucher</a></li>
+					<li class="border-success border-top"><a asp-action="SearchPurchaseFile" asp-controller="Transaction">Purchase Voucher</a></li>
+					<li><a asp-action="SearchDebitNoteFile" asp-controller="Transaction">Debit Note Voucher</a></li>
+					<li class="border-primary border-top"><a asp-action="SearchSaleFile" asp-controller="Transaction">Use Material Voucher</a></li>
+					<li><a asp-action="SearchCreditNoteFile" asp-controller="Transaction">Credit Note Voucher</a></li>
+					<li><a asp-action="SearchOrderFile" asp-controller="Transaction">Order File</a></li>
+				</ul>
+			</li>
+		</ul>
+		<ul>
+			<li class="sub-menu">
+				<a href="#" data-toggle="collapse" data-target="#sub6"><span><i class="material-icons"><i class="fas fa-tv image-widthHeight"></i></i><span class="icon-text"></span>Report File</span><div class="fa fa-caret-down right"></div></a>
+				<ul class="nav collapse" id="sub6" style="margin-left:35px;">
+					@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+					{
+						<li><a asp-action="SearchAuditRecord" asp-controller="Master">Audit File</a></li>
+					}
+						<li><a asp-action="ResultSearchRecord" asp-controller="Master">New Result</a></li>
+						<li><a asp-action="CreateTestRatePrintFile" asp-controller="Master">Test Rate List</a></li>
+						<li><a asp-action="DoctorList" asp-controller="Master">Doctor List Print</a></li>
+						<li><a asp-action="DailyCollection" asp-controller="Master">Daily Collection Print</a></li>
+						<li><a asp-action="DailySummary" asp-controller="Master">Date Wise Summary</a></li>
+						<li><a asp-action="ExecutiveCollection" asp-controller="Master">Executive Wise Print</a></li>
+						<li><a asp-action="DoctorCollection" asp-controller="Master">Doctor Wise Print</a></li>
+						<li><a asp-action="TestGroupCollection" asp-controller="Master">Test Group Wise Print</a></li>
+						<li><a asp-action="TestCollection" asp-controller="Master">Test Wise Print</a></li>
+						<li><a asp-action="PatientDueCollection" asp-controller="Master">Due Collection Print</a></li>
+						<li class="border"></li>
+						<li><a asp-action="IPReport" asp-controller="Master">IP Collection Print</a></li>
+						<li class="border-top border-success"><a asp-action="ItemStockFile" asp-controller="Financial">Item Stock Summary</a></li>
+						<li class="pb-4"><a asp-action="SearchLedgerFile" asp-controller="Transaction">Ledger File</a></li>
+					</ul>
+			</li>
+		</ul>
+	</nav>
+</div>

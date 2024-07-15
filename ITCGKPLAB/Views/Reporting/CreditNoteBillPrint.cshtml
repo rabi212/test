@@ -1,0 +1,116 @@
+﻿@model SaleRViewModel
+@inject IMasterRepository _repository;
+@inject ISettingRepository _srepository;
+@inject IGeneralMethod _grepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel companyDetailViewModels = await _srepository.GetCompanyById(((int)(await userManager.GetUserAsync(User)).CompanyDetailId));	
+	string wordAmt = await _grepository.Customizedwords((double)Model.NetAmt);
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="invoice-to">
+		<img src="~/ICON/Sysmble.jpg" class="logo" alt="logo" asp-append-version="true" />
+	</div>
+	<div class="branchCenter-details">
+		<h4 >@companyDetailViewModels.CompName</h4>
+		<div style="margin-top:-15px;">
+			@companyDetailViewModels.Address1<br />
+				@(companyDetailViewModels.Address2)<br />
+				Email :- @companyDetailViewModels.EmailAddress<br />
+				Cell No. :- @(companyDetailViewModels.PhoneNo + " " + companyDetailViewModels.MobileNo  + " GST No. " + companyDetailViewModels.GSTNo )<br />
+				@(" State :" + companyDetailViewModels.StateInCompany.StateName + " District : " + companyDetailViewModels.DistrictInCompany.DistrictName)<br />
+				<h3 style="border-top: 3px solid black; border-bottom: 3px solid black;">Credit Note Bill </h3>
+		</div>
+	</div>
+
+	<div class="invoice-to" style="margin-top:-10px;padding-bottom:5px;">
+		<strong>Bill No. :-  @(Model.SRVNo )</strong>Date :- @(Model.SDate)<br />
+		Pt's Name :- @(Model.CustName) <br />
+	</div>
+	<table class="table-responsive-sm border">
+		<thead >
+			<tr class="text-left">
+				<th class="wdp-4">Sr.No.</th>
+				<th class="wdp-53">Particulars</th>
+				<th class="wdp-8">Bat.No.</th>
+				<th class="wdp-8">Exp.Dt.</th>
+				<th class="wdp-7 text-right">Qty</th>
+				<th class="wdp-7 text-right">MRP</th>
+				<th class="wdp-5 text-right">GST%</th>
+				<th class="wdp-8 text-right">Amt.</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model.SaleRDetailViewModels)
+			{				
+				<tr class="noBorder">
+					<td>@item.TempSrNo</td>
+					<td>@item.SRItemName</td>
+					<td>@item.BatchNo</td>
+					<td>@item.ExpDate</td>
+					<td class="numeric-cell">@(item.Qty)</td>
+					<td class="numeric-cell">@item.MRP</td>
+					<td class="numeric-cell">@item.GSTPer</td>
+					<td class="numeric-cell">@item.TotalAmt</td>
+				</tr>
+			}
+
+		</tbody>
+	</table>
+	<table class="table-responsive-sm">
+		<tbody>
+			<tr class="noBorder">
+				<td colspan="4"> Remark :- @Model.Remark</td>
+				<td colspan="2" class="numeric-cell brdBottom">Total Amt. :- </td>
+				<td colspan="2" class="numeric-cell brdBottom">@Model.TotalAmt</td>
+			</tr>
+			@if (Model.DiscAmt > 0)
+			{
+				<tr class="noBorder">
+					<td colspan="4"></td>
+					<td colspan="2" class="numeric-cell brdBottom">Disc. Amt. :- </td>
+					<td colspan="2" class="numeric-cell brdBottom">@Model.DiscAmt</td>
+				</tr>
+
+			}
+
+			@if (Model.TaxAmt > 0)
+			{
+				<tr class="noBorder">
+					<td colspan="4"></td>
+					<td colspan="2" class="numeric-cell brdBottom">GST Amt. :- </td>
+					<td colspan="2" class="numeric-cell brdBottom">@Model.TaxAmt</td>
+				</tr>
+
+			}
+
+			@if (Model.NetAmt > 0)
+			{
+				<tr class="noBorder">
+					<td colspan="4"> Rs.(In Words) :- @wordAmt</td>
+					<td colspan="2" class="numeric-cell brdBottom">Net Amt. :- </td>
+					<td colspan="2" class="numeric-cell brdBottom">@Model.NetAmt</td>
+				</tr>
+			}
+			
+		</tbody>
+	</table>
+	
+	<div class="invoice-head clearfix">
+		<div class="invoice-to">
+			<strong>@User.Identity.Name</strong>
+		</div>
+		<div class="invoice-details">
+			<h5>Authorized Signature</h5>
+		</div>
+	</div>
+</body>
+</html>

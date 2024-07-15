@@ -1,0 +1,83 @@
+﻿@model PatientDateViewModel
+@inject ISettingRepository _srepository;
+@inject IMasterRepository _iMasterRepository;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId > 0 ?  Model.CompId : 1);
+	List<DoctorViewModel> patientList =  await _iMasterRepository.GetAllDoctorMaster(Model.CompId);
+	var patientDate =  patientList.GroupBy(x => x.CompId).Select(n => n.Key).ToList();
+	int memberCount = 1;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body >
+	<div class="branchCenter-details ">
+		<h3 >@CompanyDetailViewModel.CompName</h3>
+		<h4 class="text-center topcelltop">@CompanyDetailViewModel.Address1 </h4>
+		<h4 class="text-center topcelltop">Doctor List</h4>
+	</div>
+
+	<table class="table-responsive-sm border fontsizebody">
+		<thead>
+			<tr class="text-left">
+				<th class="wdp-3">S.No.</th>				
+				<th class="wdp-7">
+					Code
+				</th>				
+				<th class="wdp-25">
+					Doctor's Name
+				</th>
+				<th class="wdp-18">
+					Qualification
+				</th>
+				<th>
+					Address
+				</th>	
+				<th class="wdp-10">
+					Mobile No.
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var itemn in patientDate)
+			{
+				CompanyDetailViewModel agentdetails = await _srepository.GetCompanyById(Convert.ToInt32(itemn));
+				<tr>
+					<td colspan="6">
+						<strong>Branch's Name : </strong> @agentdetails.CompName  @agentdetails.Address1  @agentdetails.Address3 @agentdetails.PhoneNo
+					</td>
+				</tr>
+				memberCount = 1;
+				foreach (var itemx in patientList.Where(x => x.CompId == itemn))
+				{				
+					
+					<tr>
+						<td>@memberCount</td>
+						<td>
+							@itemx.Code
+						</td>
+						<td>
+							@itemx.Name
+						</td>
+						<td>@itemx.Eduction</td>
+						<td>
+							@itemx.Address1  @itemx.Address2
+						</td>	
+						<td>
+							@itemx.MobileNo
+						</td>
+					</tr>
+					memberCount++;
+				}
+				
+			}
+			
+		</tbody>
+	</table>
+</body>
+</html>

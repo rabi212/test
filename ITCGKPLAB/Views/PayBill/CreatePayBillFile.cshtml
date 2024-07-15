@@ -1,0 +1,238 @@
+﻿@model UpdatePayBillViewModel
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject ISettingRepository _repository
+@inject IAuthorizationService authorizationService
+@{
+	ViewData["Title"] = "Create Executive Salary";
+	string submitValue = Model.Id > 0  ? "Update" : "Save";
+	var Currentuser = await userManager.GetUserAsync(User);	
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById((int)(await userManager.GetUserAsync(User)).CompanyDetailId);
+}
+<div class="CustomBorderRelative mt-3">
+	<div class="CustomBorder1">
+		<h4 class="text-center text-white HeadingColorGreen">Create / Update Salary Details</h4>
+		<form method="post" asp-action="CreatePayBillFile" asp-controller="PayBill" autocomplete="off">
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12  text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6 ">
+					<div class="form-group row">
+						<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(companyDetail.Id)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control  selectedItems" hidden>
+							<option value="@companyDetail.Id.ToString()">@companyDetail.TransCode</option>
+						</select>
+						<input asp-for="Id" class="form-control " hidden />
+						<input asp-for="UserCode" class="form-control" value="@(Model.Id > 0 ? Model.UserCode : Currentuser.Id)" hidden />
+						<label asp-for="VDate" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="VDate" class="form-control " onblur="TotalDaysCount();" />
+						</div>
+						<label asp-for="EmpId" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label "></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							@if (Model.Id > 0)
+							{
+								<input asp-for="EmpId" class="form-control  text-sm-right" onkeypress="return OnlyNumber(event)" onblur="GetAgentFilePayBill(); GetAgentFileLastPayBill();" hidden />
+								<b><label id="EmpIdX" class="col-form-label  text-success" onchange="GetAgentFilePayBill();"></label></b>
+							}
+							else
+							{
+								<input asp-for="EmpId" class="form-control  text-sm-right" onkeypress="return OnlyNumber(event)" onblur="GetAgentFilePayBill(); GetAgentFileLastPayBill();" />
+								<b><label id="EmpIdX" class="col-form-label  text-success" hidden></label></b>
+							}
+						</div>
+					</div>
+					<div class="form-group row CustLabel">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<b><label id="EmpName" class="col-form-label  text-success">Executive's' Name</label></b>
+						</div>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<b><label id="EmpNameX" class="col-form-label  text-success"></label></b>
+						</div>
+					</div>
+					<div class="form-group row CustLabel">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<b><label id="EmpAddress" class="col-form-label  text-info">Address</label></b>
+						</div>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<b><label id="EmpAddressX" class="col-form-label  text-info"></label></b>
+						</div>
+					</div>
+					<div class="form-group row CustLabel">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<b><label id="EmpMobileNo" class="col-form-label  text-danger">Mobile No.</label></b>
+						</div>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<b><label id="EmpMobileNoX" class="col-form-label  text-danger"></label></b>
+						</div>
+					</div>
+					<div class="form-group row CustLabel">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<b><label id="EmpBankName" class="col-form-label  text-secondary">Bank's Name</label></b>
+						</div>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<b><label id="EmpBankNameX" class="col-form-label  text-secondary"></label></b>
+						</div>
+					</div>
+					<div class="form-group row CustLabel">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<b><label id="EmpAcNo" class="col-form-label  text-info">A/c No.</label></b>
+						</div>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<b><label id="EmpAcNoX" class="col-form-label  text-info"></label></b>
+						</div>
+					</div>
+					<div class="form-group row CustLabel">
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<b><label id="EmpIFSCNo" class="col-form-label  text-info">IFSC Code</label></b>
+						</div>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							<b><label id="EmpIFSCNoX" class="col-form-label  text-info"></label></b>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="BasicPay" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="BasicPay" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" />
+						</div>
+						<label asp-for="AttendDays" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel text-right"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="AttendDays" class="form-control  text-sm-right CustomText" onkeypress="return OnlyNumber(event)" onblur="TotalNewBasic();" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="NewBasicPay" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="NewBasicPay" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this); TotalPaymentAmount();" />
+						</div>
+						<label asp-for="DA" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel text-right"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="DA" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalPaymentAmount();" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="TA" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="TA" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalPaymentAmount();" />
+						</div>
+						<label asp-for="HRA" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel text-right"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="HRA" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalPaymentAmount();" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="CCA" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="CCA" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalPaymentAmount();" />
+						</div>
+						<label asp-for="IPAmt" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel text-right"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="IPAmt" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalPaymentAmount();" />
+						</div>
+					</div>
+
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<label asp-for="Remarks" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  "></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							@*<input asp-for="Remarks" class="form-control  " />*@
+							<textarea asp-for="Remarks" class="form-control  " rows="3">
+							</textarea>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="BonusAmt" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="BonusAmt" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);TotalPaymentAmount();" />
+						</div>
+						<label asp-for="TotalPay" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel text-right"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel">
+							<input asp-for="TotalPay" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<b><label id="TotalPayX" class="col-form-label  text-info"></label></b>
+						</div>
+					</div>
+					<div class="form-group row border-top border-danger col-sm-12">
+
+					</div>
+					<div class="form-group row">
+						<label asp-for="EFP" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="EFP" class="form-control  CustomText text-sm-right " onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);GrandTotalPurMRPAmtCount();" />
+						</div>
+						<label asp-for="AdvAmt" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="AdvAmt" class="form-control  CustomText text-sm-right" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);GrandTotalPurMRPAmtCount();" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="AdvRemarks" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9">
+							@*<input asp-for="AdvRemarks" class="form-control  CustomText" />*@
+							<textarea asp-for="AdvRemarks" class="form-control  CustomText" rows="3">
+							</textarea>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="LIC" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<input asp-for="LIC" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);GrandTotalPurMRPAmtCount();" />
+						</div>
+						<label asp-for="TotalDedPay" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 CustLabel">
+							<input asp-for="TotalDedPay" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<b><label id="TotalDedPayX" class="col-form-label  text-danger"></label></b>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="NetPay" class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3 col-form-label  CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-9 CustLabel">
+							<input asp-for="NetPay" class="form-control  text-sm-right CustomText" onkeypress="return isNumber(event)" onblur="ConvertTwoDecimal(this);" hidden />
+							<b><label id="NetPayX" class="col-form-label  text-info"></label></b>
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-sm btn-success" id="submit" hidden />
+								<a href="#" class="btn btn-success  btn-sm" id="btn-confirm">@submitValue</a>
+							@if ((await authorizationService.AuthorizeAsync(User, "SalaryBillPrintFilePolicy")).Succeeded)
+							{
+								if (Model.Id > 0)
+								{
+									<a asp-action="SalaryBillPrint" asp-controller="Reporting" asp-route-id="@Model.Id" class="btn btn-warning btn-sm" target="_blank">Print</a>
+								}
+								else
+								{
+									<a asp-action="SalaryBillPrint" asp-controller="Reporting" class="btn btn-warning btn-sm disabled" target="_blank">Print</a>
+								}
+							}
+							<a asp-action="CreatePayBillFile" asp-controller="PayBill" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-sm btn-warning" style="width:auto;">Add New</a>
+							<a asp-action="SearchPayBillFile" asp-controller="PayBill" class="btn btn-sm btn-outline-info">Cancel</a>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+	<environment include="Development">
+		<script src="~/js/PayBill.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/PayBill.min.js" asp-append-version="true"></script>
+	</environment>
+}

@@ -1,0 +1,560 @@
+﻿@model PatientViewModel
+@inject IMasterRepository _repository;
+@inject ISettingRepository _srepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject IConfiguration _configuration;
+@{
+	Layout = null;
+	//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById((int)Model.CompId);
+	PageSetupViewModel pagedetails = await _repository.GetPageSetuppPrintComp((int)Model.CompId);
+	List<ReportGroupViewModel> reportHeading = await _repository.GetPatientReportGroup(Model.Id, "Reading", "PathDoc");
+	var reportgroup = reportHeading.GroupBy(x => new { x.TempNo, x.Id });
+	var reportgroupCount = reportgroup.GroupBy(x => x.Key.Id);
+	var testgroupId = reportHeading.GroupBy(x => new { x.Id, x.TempTestId });
+	decimal DecFromRange = 0; decimal DecUptoRange = 0; decimal DecResultValue = 0;
+	string domainname = _configuration.GetSection("Application:AppDomain").Value + "PatientReport-Print?id=";
+	string leftspacestring = "";
+	bool covidCorrect = await _repository.GetPatientTestGroupCovid(Model.Id);
+	var Signaturephotopath = "~/CenterSignature/" + (CompanyDetailViewModel.ExitSignaturePhotoPath ?? "logo.jpg");
+	var SignatureLeft = "~/CenterSignatureLeft/" + (CompanyDetailViewModel.ExitSignaturePhotoPathLeft ?? "logo.jpg");
+	var SignatureRight = "~/CenterLogo/" + (CompanyDetailViewModel.ExitPhotoPath ?? "logo.jpg");
+	ViewData["TableStyle"] = pagedetails.TestLockTypeNDetails;
+	int totalLinePage = Convert.ToInt32(pagedetails.PagePrintLine) - (pagedetails.BarcodeTop == true ? 3 : 5) ; int printedline = 0; bool printreportName = false;
+	int totalcharOneLine = Convert.ToInt32(pagedetails.OnePrintChart); int printedlinex = 0;string preitemlenth = "";
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />	
+</head>
+<body>
+	@*<div id="backgroundfixed">
+				<div id="bg-textfixed">@CompanyDetailViewModel.CompName</div>
+		</div>*@
+	@if (pagedetails.BarcodeTop)
+	{
+		<div style="text-align:center;">
+			<span><barcode content="@Model.VNo" height="25" width="200" /></span>
+		</div>
+	}
+	
+<table class="table-responsive-sm" style="border:0;">
+	<tbody class="bg-white cellLeft bodyboard" style=" @pagedetails.HeaderDetails">
+		@*border:2px solid black*@
+		<tr class="noBorderBody">
+			<td class="wdp-65" colspan="6">Pt Ref. No. :- <strong>@(Model.RefNo + " Date : " + Model.RDate + " Time " + Model.RTime )</strong></td>
+			<td class="wdp-15">UID</td>
+			<td class="wdp-20"> :- @Model.VNo </td>
+		</tr>
+		<tr class="noBorderBody">
+			<td class="wdp-65" colspan="6">Patient's Name :- <strong> @Model.TitleName @Model.Name</strong> Age/Sex :- @((int)Model.Age) @Model.AgeType / @Model.Sex</td>
+
+			<td class="wdp-15">Sample Date</td>
+			<td class="wdp-20"> :- @Model.SDate @Model.STime</td>
+		</tr>
+		<tr class="noBorderBody">
+			<td class="wdp-65" colspan="6">Ref. By     :- <strong>Dr.  @Model.DrName</strong></td>
+			<td class="wdp-15">Report Date</td>
+			<td class="wdp-20">:- @Model.ReportDate</td>
+		</tr>
+		<tr class="noBorderBody">
+			@if (Model.AdharNo != null)
+			{
+				<td class="wdp-65" colspan="6">Adhar No. :- <strong>  @Model.AdharNo</strong></td>
+			}
+			else
+			{
+				<td class="wdp-65" colspan="6"><strong> --</strong></td>
+			}
+			<td class="wdp-15">Status</td>
+			<td class="wdp-20"> :- @(Model.ReportApproved == "True" ? "Approved" : "")</td>
+		</tr>
+	</tbody>	
+	@{
+		bool testoneid = true;
+		if (Model.PatientDetailsMasterViewModels.Count == 1)
+		{
+			var testdocx = Model.PatientDetailsMasterViewModels.Where(x => x.TestMasterViewModels.documentType != "Reading").FirstOrDefault();
+			testoneid = testdocx != null ? false : true;
+		}
+		if (testoneid)
+		{
+			if (pagedetails.TestHeaderTop == true)
+			{
+				<thead class="bg-white " style="@pagedetails.HeaderSecondDetails">
+					<tr class="noBorderHead">
+						<th class="cellLeft wdp-45" colspan="4">Test  Details</th>
+						<th class="cellLeft wdp-15">Value</th>
+						<th class="cellLeft wdp-5">&nbsp;</th>
+						<th class="cellLeft wdp-15">Unit</th>
+						<th class="wdp-20 cellLeft">Reference</th>
+					</tr>
+					<tr class="noBorderHead" style="height:5px;">
+						<th colspan="8"></th>
+					</tr>
+				</thead>
+			}
+		}
+	}
+
+<tbody>
+	@foreach (var item in reportgroup)
+	{
+		printreportName = true;
+		ReportGroupViewModel rptname = await _repository.GetReportGroupMasterById(item.Key.Id);
+		List<PatientInvestigationViewModel> patientReportn = await _repository.GetPatientTestReport(Model.Id, rptname.Id);
+		var patientReportx = patientReportn.Where(x => x.TestDetails != null && x.TestDetails.Length > totalcharOneLine).ToList();
+		var testdoc = patientReportn.Where(x => x.TestMasterViewModels.documentType != "Reading").FirstOrDefault();
+		var testdocR = patientReportn.Where(x => x.TestMasterViewModels.documentType == "Reading").FirstOrDefault();
+		string lenthItem = "";
+		foreach (var itemlenth in patientReportx)
+		{
+			lenthItem = lenthItem + itemlenth.TestDetails;
+		}
+		int rowno = lenthItem.Length > 0 ? (int)(lenthItem.Length / totalcharOneLine) + (patientReportx != null ? 1 : 0) : 0;
+		int pattestRecordCount = patientReportn.Count() + rowno - patientReportx.Count() + (testdoc != null ? 1 : 2);
+		if (lenthItem != null && (int)lenthItem.Length > 400)
+		{
+			preitemlenth = lenthItem;
+		}
+		printedline = printedline + 0;
+		printedlinex = preitemlenth == null ? 0 : ((int)preitemlenth.Length > 400 ? 1 : 0);
+		if (pattestRecordCount >= (testdoc != null || (testdoc != null && testdocR != null) ? (totalLinePage - printedline) : (totalLinePage - printedline)))
+		{
+			printreportName = false;
+			if (testdoc == null)
+			{
+				if ((testdoc != null && testdocR == null && Model.PatientDetailsMasterViewModels.Count != 1 && reportgroupCount.Count() != 1 ) || (testdoc == null && testdocR != null && Model.PatientDetailsMasterViewModels.Count != 1 && reportgroupCount.Count() != 1))
+				{
+					for (int i = 0; i < (totalLinePage - printedline + 3); i++)
+					{
+						<tr class="noBorderBody" style="height:5px;max-width:100%;@pagedetails.TestLockTypeNDetails"><td colspan="8">&nbsp;</td></tr>
+					}
+					printedline = 0;
+				}
+
+				<tr style="max-width: 100%;" class="text-center noBorderBody">
+					<td colspan="8"><p class="branchCenter-details" style="@pagedetails.ReportHeaderDetails">@(rptname.Name )</p></td>
+				</tr>
+				if (pagedetails.TestHeaderTop != true)
+				{
+					<tr class="noBorderBody" style="@pagedetails.HeaderSecondDetails border-top:1px solid black;border-bottom:1px solid black;margin-bottom:10px;">
+						<td class="cellLeft wdp-45" colspan="4">Test  Details</td>
+						<td class="cellLeft wdp-15">Value</td>
+						<td class="cellLeft wdp-5">&nbsp;</td>
+						<td class="cellLeft wdp-15">Unit</td>
+						<td class="wdp-20 cellLeft">Reference</td>
+					</tr>
+					<tr class="noBorderBody" style="height:5px;">
+						<td colspan="8"></td>
+					</tr>
+				}
+			}
+			else
+			{
+				if ((testdoc != null && testdocR != null && Model.PatientDetailsMasterViewModels.Count != 1 && reportgroupCount.Count() != 1) || (testdoc != null && testdocR == null && Model.PatientDetailsMasterViewModels.Count != 1 && reportgroupCount.Count() != 1))
+				{
+					for (int i = 0; i < (totalLinePage - printedline + 3); i++)
+					{
+						<tr class="noBorderBody" style="height: 5px; max-width: 100%;@pagedetails.TestLockTypeNDetails"><td colspan="8">&nbsp;</td></tr>
+					}
+
+					printedline = 0;
+				}
+				<tr style="max-width: 100%;" class="text-center noBorderBody">
+					<td colspan="8"><p class="branchCenter-details" style="@pagedetails.ReportHeaderDetails">@(rptname.Name)</p></td>
+				</tr>
+				if (pagedetails.TestHeaderTop != true && testdocR != null)
+				{
+					<tr class="noBorderBody" style="@pagedetails.HeaderSecondDetails border-top:1px solid black;border-bottom:1px solid black;margin-bottom:10px;">
+						<td class="cellLeft wdp-45" colspan="4">Test  Details</td>
+						<td class="cellLeft wdp-15">Value</td>
+						<td class="cellLeft wdp-5">&nbsp;</td>
+						<td class="cellLeft wdp-15">Unit</td>
+						<td class="wdp-20 cellLeft">Reference</td>
+					</tr>
+					<tr class="noBorderBody" style="height:5px;">
+						<td colspan="8"></td>
+					</tr>
+				}
+			}
+			//printedline =  7;
+		}
+		else
+		{
+			if (printreportName)
+			{
+				if (testdoc != null && testdocR == null && Model.PatientDetailsMasterViewModels.Count != 1 && reportgroupCount.Count() != 1)
+				{
+					for (int i = 0; i < (totalLinePage - printedline + 3); i++)
+					{
+						<tr class="noBorderBody" style="height: 5px; max-width: 100%;@pagedetails.TestLockTypeNDetails"><td colspan="8">&nbsp;</td></tr>
+					}
+
+					printedline = 0;
+				}
+				else if (testdoc == null && patientReportx != null && Model.PatientDetailsMasterViewModels.Count != 1 && rowno >= 8 && reportgroupCount.Count() != 1)
+				{
+					for (int i = 0; i < (totalLinePage - printedline + 3); i++)
+					{
+						<tr class="noBorderBody" style="height: 5px; max-width: 100%;@pagedetails.TestLockTypeNDetails"><td colspan="8">&nbsp;</td></tr>
+					}
+				}				
+				<tr style="max-width: 100%;" class="text-center noBorderBody">
+					<td colspan="8"><p class="branchCenter-details" style="@pagedetails.ReportHeaderDetails">@(rptname.Name)</p></td>
+				</tr>
+				if (testdoc == null || (testdoc != null && testdocR != null))
+				{
+					if (pagedetails.TestHeaderTop != true)
+					{
+						<tr class="noBorderBody" style="@pagedetails.HeaderSecondDetails border-top:1px solid black;border-bottom:1px solid black;margin-bottom:10px;">
+							<td class="cellLeft wdp-45" colspan="4">Test  Details</td>
+							<td class="cellLeft wdp-15">Value</td>
+							<td class="cellLeft wdp-5">&nbsp;</td>
+							<td class="cellLeft wdp-15">Unit</td>
+							<td class="wdp-20 cellLeft">Reference</td>
+						</tr>
+						<tr class="noBorderBody" style="height:5px;">
+							<td colspan="8"></td>
+						</tr>
+					}
+				}
+			}			
+		}
+		printedline = printedline + pattestRecordCount;
+
+		foreach (var testitem in testgroupId.Where(x => x.Key.Id == item.Key.Id))
+		{
+			//printreportName = true;
+			List<PatientInvestigationViewModel> patientReport = await _repository.GetPatientTestReport(Model.Id, rptname.Id, testitem.Key.TempTestId);
+
+
+			int partialFirstcount = 1; printreportName = false;
+			foreach (var prtdetails in patientReport.Where(x => x.TestMasterViewModels.ReportGroupViewModel.Id == @rptname.Id))
+			{
+				//printedline += 1;
+				DecFromRange = 0; DecUptoRange = 0; DecResultValue = 0; leftspacestring = "0px";
+				decimal.TryParse(prtdetails.FromRange, out DecFromRange);
+				decimal.TryParse(prtdetails.UptoRange, out DecUptoRange);
+				bool PtResultCorrect = decimal.TryParse(prtdetails.PatResult, out DecResultValue);
+				leftspacestring = prtdetails.TestDetails != null ? ((prtdetails.TestDetails.Length - prtdetails.TestDetails.Trim().Length) * 8).ToString() + "px" : "15px";
+<tr class="noBorderBody">
+	@if (prtdetails.TestMasterViewModels.documentType == "Reading")
+	{
+		if (prtdetails.ColFirst != null)
+		{
+			var ndetails = "font-family:" + pagedetails.TestLockTypeNFont + ";font-size:" + pagedetails.TestLockTypeNSize + ";font-style:" + pagedetails.TestLockTypeNStyle + ";font-weight:" + pagedetails.TestLockTypeNWeight + ";color:" + pagedetails.TestLockTypeNColor + ";text-decoration:" + pagedetails.TestLockTypeNDecorate + ";" + "margin-left:5px;";
+			var mdetails = "font-family:" + pagedetails.TestLockTypeMFont + ";font-size:" + pagedetails.TestLockTypeMSize + ";font-style:" + pagedetails.TestLockTypeMStyle + ";font-weight:" + pagedetails.TestLockTypeMWeight + ";color:" + pagedetails.TestLockTypeMColor + ";text-decoration:" + pagedetails.TestLockTypeMDecorate + ";";
+			@*ViewData["TableStyle"] = partialFirstcount == 1 ? mdetails : ndetails;
+				<partial name="_PatientTestColum" model="@prtdetails" view-data="@new ViewDataDictionary(ViewData)" />*@
+			var tablestyle = partialFirstcount == 1 ? ndetails : ndetails;
+			@if (prtdetails.ColFirst != null && prtdetails.ColSecond != null && prtdetails.ColThird != null && prtdetails.ColFourth != null && prtdetails.ColFifth != null && prtdetails.ColSixth != null)
+			{
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.TestDetails</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColFirst</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColSecond</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColThird</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColFourth</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColFifth</p>
+				</td>
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.ColSixth</p>
+				</td>
+			}
+			else if (prtdetails.ColFirst != null && prtdetails.ColSecond != null && prtdetails.ColThird != null && prtdetails.ColFourth != null && prtdetails.ColFifth != null)
+			{
+				<td style="border:1px solid black;" colspan="3">
+					<p style=" @tablestyle">@prtdetails.TestDetails</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColFirst</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColSecond</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColThird</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColFourth</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColFifth</p>
+				</td>
+			}
+			else if (prtdetails.ColFirst != null && prtdetails.ColSecond != null && prtdetails.ColThird != null && prtdetails.ColFourth != null)
+			{
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.TestDetails</p>
+				</td>
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.ColFirst</p>
+				</td>
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.ColSecond</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColThird</p>
+				</td>
+				<td style="border:1px solid black;">
+					<p style=" @tablestyle">@prtdetails.ColFourth</p>
+				</td>
+			}
+			else if (prtdetails.ColFirst != null && prtdetails.ColSecond != null && prtdetails.ColThird != null)
+			{
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.TestDetails</p>
+				</td>
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.ColFirst</p>
+				</td>
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.ColSecond</p>
+				</td>
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.ColThird</p>
+				</td>
+			}
+			else if (prtdetails.ColFirst != null && prtdetails.ColSecond != null)
+			{
+				<td style="border:1px solid black;" colspan="3">
+					<p style=" @tablestyle">@prtdetails.TestDetails</p>
+				</td>
+				<td style="border:1px solid black;" colspan="3">
+					<p style=" @tablestyle">@prtdetails.ColFirst</p>
+				</td>
+				<td style="border:1px solid black;" colspan="2">
+					<p style=" @tablestyle">@prtdetails.ColSecond</p>
+				</td>
+			}
+			else if (prtdetails.ColFirst != null)
+			{
+				<td style="border:1px solid black;" colspan="4">
+					<p style=" @tablestyle">@prtdetails.TestDetails</p>
+				</td>
+				<td style="border:1px solid black;" colspan="4">
+					<p style=" @tablestyle">@prtdetails.ColFirst</p>
+				</td>
+			}
+			partialFirstcount++;
+		}
+		else if (prtdetails.ColFirst == null)
+		{
+			partialFirstcount = 1;
+			if (prtdetails.TestLocked == "Y")
+			{
+				<td style="max-width: 100%;" colspan="8">
+					<p style="text-align: justify;padding-left: @leftspacestring; @pagedetails.TestLockTypeYDetails">@Html.Raw(prtdetails.TestDetails)</p>
+				</td>
+			}
+			else if (prtdetails.TestLocked == "S")
+			{
+				if (prtdetails.Units == null)
+				{
+					<td style="max-width:100%;" colspan="8">
+						<p style="text-align: justify;padding-left: @leftspacestring; @pagedetails.TestLockTypeSDetails">@Html.Raw(prtdetails.TestDetails)</p>
+					</td>
+				}
+				else
+				{
+					<td style="max-width:45%;" colspan="4"><p style="padding-left:@leftspacestring; @pagedetails.TestLockTypeSDetails">@Html.Raw(prtdetails.TestDetails)</p></td>
+					if (PtResultCorrect && prtdetails.RangeSymble != null && prtdetails.RangeSymble != "-")
+					{
+						if (prtdetails.FromRange == null && prtdetails.UptoRange != null && DecResultValue > DecUptoRange && prtdetails.RangeSymble == ">" || prtdetails.FromRange == null && prtdetails.UptoRange != null && DecResultValue < DecUptoRange && prtdetails.RangeSymble == "<")
+						{
+							<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeNormalDetails">@prtdetails.PatResult</p></td>
+						}
+						else
+						{
+							<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+						}
+					}
+					else
+					{
+						if (PtResultCorrect && (DecResultValue < DecFromRange || DecResultValue > DecUptoRange) && prtdetails.FromRange != null && prtdetails.UptoRange != null)
+						{
+							<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+						}
+						else
+						{
+							if (@prtdetails.PatResult.Trim() == "Positive" || @prtdetails.PatResult.Trim() == "POSITIVE")
+							{
+								<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+							}
+							else
+							{
+								<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeNormalDetails">@prtdetails.PatResult</p></td>
+							}
+						}
+					}
+					<td style="max-width:15%;" class="pl-1" colspan="1"><p style="@pagedetails.TestLockTypeRangeDetails">@prtdetails.Units</p></td>
+					if (prtdetails.RangeDetails != null && prtdetails.RangeDetails.Trim() != "")
+					{
+						<td style="max-width:20%;" class="text-left"> <p style="@pagedetails.TestLockTypeRangeDetails">(@prtdetails.RangeDetails) </p></td>
+					}
+					else
+					{
+						<td style="max-width:20%;" class="text-left"></td>
+					}
+				}
+			}
+			else if (prtdetails.TestLocked == "B")
+			{
+				if (prtdetails.Units == null)
+				{
+					<td style="max-width:100%;" colspan="8">
+						<p style="text-align: justify;padding-left: @leftspacestring; @pagedetails.TestLockTypeBDetails">@Html.Raw(prtdetails.TestDetails)</p>
+					</td>
+				}
+				else
+				{
+					<td style="max-width:45%;" colspan="4"><p style="padding-left:@leftspacestring; @pagedetails.TestLockTypeBDetails">@Html.Raw(prtdetails.TestDetails)</p></td>
+					if (PtResultCorrect && prtdetails.RangeSymble != null && prtdetails.RangeSymble != "-")
+					{
+						if (prtdetails.FromRange == null && prtdetails.UptoRange != null && DecResultValue > DecUptoRange && prtdetails.RangeSymble == ">" || prtdetails.FromRange == null && prtdetails.UptoRange != null && DecResultValue < DecUptoRange && prtdetails.RangeSymble == "<")
+						{
+							<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeNormalDetails">@prtdetails.PatResult</p></td>
+						}
+						else
+						{
+							<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+						}
+					}
+					else
+					{
+						if (PtResultCorrect && (DecResultValue < DecFromRange || DecResultValue > DecUptoRange) && prtdetails.FromRange != null && prtdetails.UptoRange != null)
+						{
+							<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+						}
+						else
+						{
+							if (@prtdetails.PatResult.Trim() == "Positive" || @prtdetails.PatResult.Trim() == "POSITIVE")
+							{
+								<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+							}
+							else
+							{
+								<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeNormalDetails">@prtdetails.PatResult</p></td>
+							}
+						}
+					}
+					<td style="max-width:15%;" class="pl-1" colspan="1"><p style="@pagedetails.TestLockTypeRangeDetails">@prtdetails.Units</p></td>
+					if (prtdetails.RangeDetails != null && prtdetails.RangeDetails.Trim() != "")
+					{
+						<td style="max-width:20%;" class="text-left"> <p style="@pagedetails.TestLockTypeRangeDetails">(@prtdetails.RangeDetails) </p></td>
+					}
+					else
+					{
+						<td style="max-width:20%;" class="text-left"></td>
+					}
+				}
+			}
+			else if (prtdetails.TestLocked == "L")
+			{
+				<td style="max-width:100%;" colspan="8">
+					<p style="text-align: justify;padding-left: @leftspacestring; @pagedetails.TestLockTypeLDetails">@Html.Raw(prtdetails.TestDetails)</p>
+				</td>
+			}
+			else if (prtdetails.TestLocked == "M")
+			{
+				<td style="max-width:100%;" colspan="8">
+					<p style="text-align: justify;padding-left: @leftspacestring; @pagedetails.TestLockTypeMDetails">@Html.Raw(prtdetails.TestDetails)</p>
+				</td>
+			}
+			else if (prtdetails.TestLocked == "N")
+			{
+				<td style="max-width:45%;" colspan="4"><p style="padding-left:@leftspacestring; @pagedetails.TestLockTypeNDetails">@prtdetails.TestDetails</p></td>
+				if (PtResultCorrect && prtdetails.RangeSymble != null && prtdetails.RangeSymble != "-")
+				{
+					if (prtdetails.FromRange == null && prtdetails.UptoRange != null && DecResultValue > DecUptoRange && prtdetails.RangeSymble == ">" || prtdetails.FromRange == null && prtdetails.UptoRange != null && DecResultValue < DecUptoRange && prtdetails.RangeSymble == "<")
+					{
+						<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeNormalDetails">@prtdetails.PatResult</p></td>
+					}
+					else
+					{
+						@*<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>*@
+						if (PtResultCorrect && (DecResultValue < DecFromRange || DecResultValue > DecUptoRange) && prtdetails.FromRange != null && prtdetails.UptoRange != null)
+						{
+							<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+						}
+						else
+						{
+							if (@prtdetails.PatResult.Trim() == "Positive" || @prtdetails.PatResult.Trim() == "POSITIVE")
+							{
+								<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+							}
+							else
+							{
+								<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeNormalDetails">@prtdetails.PatResult</p></td>
+							}
+						}
+					}
+				}
+				else
+				{
+					if (PtResultCorrect && (DecResultValue < DecFromRange || DecResultValue > DecUptoRange) && prtdetails.FromRange != null && prtdetails.UptoRange != null)
+					{
+						<td style="max-width:20%;text-align:left;" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+					}
+					else
+					{
+						if (@prtdetails.PatResult.Trim() == "Positive" || @prtdetails.PatResult.Trim() == "POSITIVE")
+						{
+							<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeUnnormalDetails">@prtdetails.PatResult</p></td>
+						}
+						else
+						{
+							<td style="max-width:20%;text-align:left" colspan="2"><p style="@pagedetails.TestLockTypeNormalDetails">@prtdetails.PatResult</p></td>
+						}
+					}
+				}
+				<td style="max-width:15%;" class="pl-1" colspan="1"><p style="@pagedetails.TestLockTypeRangeDetails">@prtdetails.Units</p></td>
+				if (prtdetails.RangeDetails != null && prtdetails.RangeDetails.Trim() != "")
+				{
+					<td style="max-width:20%;" class="text-left"> <p style="@pagedetails.TestLockTypeRangeDetails">(@prtdetails.RangeDetails) </p></td>
+				}
+				else
+				{
+					<td style="max-width:20%;" class="text-left"></td>
+				}
+			}
+		}
+	}
+	else
+	{
+		<td style="max-width:100%;" colspan="8">
+			@Html.Raw(prtdetails.TestDetails)
+		</td>
+	}
+</tr>
+			}
+		}
+	}
+	<tr style="max-width:100%;" class="text-center noBorderBody">
+		<td colspan="8"><p class="branchCenter-details" style="@pagedetails.TestLockTypeMDetails margin-top:10px;">**End Of Report**</p></td>
+	</tr>
+	@if (pagedetails.ReportFooterPrintB)
+	{
+		<tr style="max-width: 100%;" class="text-center noBorderBody">
+			<td colspan="8"><h5 class="branchCenter-details" style="margin-top: -15px;">@Html.Raw(pagedetails.ReportFooterB)</h5></td>
+		</tr>
+	}
+</tbody>
+
+</table>	
+</body>
+</html>

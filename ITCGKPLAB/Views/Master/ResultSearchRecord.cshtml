@@ -1,0 +1,520 @@
+﻿@model OpenSearchViewModel
+@inject ISettingRepository _repository;
+@inject IMasterRepository _mrepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject Microsoft.AspNetCore.Identity.SignInManager<ApplicationUser> signInManager;
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption;
+@inject IAuthorizationService authorizationService;
+@{
+	ViewData["Title"] = "Result Search";
+	var softwareheader = softwareoption.Value;
+	decimal totalamt = 0; decimal discamt = 0; decimal paidamt = 0; decimal balamt = 0;
+	string userid = signInManager.IsSignedIn(User) ? ((await userManager.GetUserAsync(User)).Id) : "";
+	var userdetails = userManager.Users.Where(x => x.Id == userid).ToList();
+	var paidclass = "";
+	List<PatientViewModel> detailViewModelsx = await _mrepository.GetAllPatientMasterResultSearch(Model.CompId, Model.UserId, Model.MobileNo, Convert.ToInt32(Model.sex), Model.TestGroupName, Model.CustomerName, Model.Age, Model.Address, Model.EmailAddress, Model.DoctorId, Model.FromDate, Model.UptoDate, Model.PaymentType, Model.PaymentMode, Model.TestDoctorId, Model.SearchDate,Model.ClientId,Model.SearchRecordFinder);
+	CompanyDetailViewModel companyDetail = await _repository.GetCompanyById(User.Identity.IsAuthenticated ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1);
+}
+
+<div class="CustomBorderRelative pt-1">
+	<div class="CustomBorder1">
+
+		<form asp-action="ResultSearchRecord" asp-controller="Master" method="post" autocomplete="off" id="SearchResultform">
+			@*<input asp-for="UserId" class="form-control" value="@((await userManager.GetUserAsync(User)).Id)" hidden />*@
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">				
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							@if (!softwareheader.SoftwareMode)
+							{
+								@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.Id).Select(x=> new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text = x.Id.ToString() + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Branch">
+									</select>
+								}
+							}
+							else
+							{
+
+								@if (User.IsInRole("SuperAdmin"))
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.TransCode).Select(x=> new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems selectedItems" title="Branch">
+										<option value="0">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode + ' ' + x.CompName + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Branch">
+									</select>
+								}
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="UserId" asp-items="(userManager.Users.Select(x => new SelectListItem() { Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+									<option value="ALL">ALL</option>
+								</select>
+							}
+							else
+							{
+								if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+								{
+									<select asp-for="UserId" asp-items="(userManager.Users.Where(x => x.CompanyDetailId == Model.CompId).Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+										<option value="ALL">ALL</option>
+									</select>
+								}
+								else
+								{
+									<select asp-for="UserId" asp-items="(userdetails.Select(x => new SelectListItem() {Text = x.UserName,Value = x.Id.ToString() }))" class="form-control  selectedItems" title="User's Name'">
+									</select>
+								}
+							}
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="FromDate" class="form-control " title="From Date" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+							<input asp-for="UptoDate" class="form-control " title="Upto Date" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-4 col-lg-2 col-xl-2">
+							<input asp-for="CustomerName" class="form-control  " placeholder="Patient's Name" />
+						</div>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+							<select asp-for="TestGroupName" asp-items=" (await _mrepository.GetAllTestMaster(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.TestCode).Select(x=> new SelectListItem() { Text = x.TestCode, Value = x.TestCode.ToString() })" class="form-control  selectedItems" title="Test Group Type">
+								<option value="ALL">ALL</option>
+							</select>
+						</div>
+						<div hidden>
+							<input asp-for="PaymentType" class="form-control  " placeholder="Payment Type" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<div class="form-group row">
+								<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+									<input asp-for="MobileNo" class="form-control  CustomText" placeholder="Mobile No." />
+								</div>
+								<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1">
+									<input asp-for="SearchDate" class="form-control  CustomText" title="Date Wise Search" />
+								</div>
+
+								<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+									<input asp-for="Address" class="form-control  CustomText" placeholder="Address" />
+								</div>
+								<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+									<input asp-for="EmailAddress" class="form-control  CustomText" placeholder="Ref. No." />
+								</div>
+							</div>
+						</div>
+						<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+							<div class="form-group row">
+								<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+									<select asp-for="DoctorId" asp-items=" (await _mrepository.GetAllDoctorMasterLedger(softwareheader.SoftwareMode == true ? (int)((await userManager.GetUserAsync(User)).CompanyDetailId):1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = (x.Name + ' ' + x.Eduction), Value = x.Id.ToString() })" class="form-control  CustomText selectedItems" title="Doctor's Name">									
+										<option value="0">ALL</option>
+									</select>
+								</div>
+								<div class="col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+									<select asp-for="PaymentMode" asp-items="Html.GetEnumSelectList<PayMode>()" class="form-control  CustomText" title="Payment Type">										
+										<option value="ALL">ALL</option>
+									</select>
+								</div>
+								<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+									<select asp-for="sex" asp-items="Html.GetEnumSelectList<Gender>()" class="form-control  CustomText" title="Search Gender Wise">									
+										<option value="3">ALL</option>
+									</select>
+								</div>
+								<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2">
+									<input asp-for="Age" class="form-control  CustomText" title="Search Age" />
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10 text-sm CustLabel">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2" onmouseover="ResultNotDone();">
+							<button class="resultNotDone"></button>
+							<span>Result Not Done</span>
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2" onmouseover="ResultDone();">
+							<button class="resultDone"></button>
+							<span>Result Done</span>
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2" onmouseover="ResultApproved();">
+							<button class="resultApproved"></button>
+							<span>Approved</span>
+						</div>
+						<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1" onmouseover="ResultIssue();">
+							<button class="resultIssue"></button>
+							<span>Issue</span>
+						</div>
+						<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1" onmouseover="ResultHold();">
+							<button class="resultHold"></button>
+							<span>Hold</span>
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2" onmouseover="ResultRecipt();">
+							<button class="resultRecipt"></button>
+							<span>Report Receipt</span>
+						</div>
+						<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2" onmouseover="ResultDispatch();">
+							<button class="resultDispatch"></button>
+							<span>Report Dispatch</span>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 text-sm-right CustLabel">
+					<input type="submit" value="Search" name="Search" class="btn btn-success btn-sm " style="width:auto;" onmouseover="ResultALL();" />
+					<a asp-action="Index" asp-controller="Home" class="btn btn-warning btn-sm" style="width:auto;">Cancel</a>
+					@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin") || User.IsInRole("Manager"))
+					{
+						<input type="submit" value="Download" name="Search" class="btn btn-secondary btn-sm " formtarget="_blank" style="width:auto;" title="Check Dispatch Download" />
+					}
+					else
+					{
+						@if ((await authorizationService.AuthorizeAsync(User, "DownloadPrintPolicy")).Succeeded)
+						{
+							<input type="submit" value="Download" name="Search" class="btn btn-secondary btn-sm " formtarget="_blank" style="width:auto;" title="Check Dispatch Download" />
+						}
+					}
+				</div>
+			</div>
+			<div class="col-12">
+				<div class="form-group row">
+					@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+					{
+						<div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+							<select asp-for="TestDoctorId" asp-items=" (await _mrepository.GetDoctorMasterLabList(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).OrderBy(x=> x.Name).Select(x=> new SelectListItem() { Text = x.Name, Value = x.Id.ToString() })" class="form-control  selectedItems" title="Investigation By Doctor Details">
+								<option value="0">ALL</option>
+							</select>
+						</div>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<partial name="_SearchResultApprovedViewItems" />
+						</div>
+					}
+					<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+						@if (!softwareheader.SoftwareMode)
+						{
+							@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+							{
+								<select asp-for="ClientId" asp-items=" (await _mrepository.GetAllClient(0)).OrderBy(x=> x.Id).Select(x=> new SelectListItem() { Text = x.Name + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Client's Name">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else
+							{
+								<select asp-for="ClientId" asp-items=" (await _mrepository.GetAllClient((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Id).Select(x => new SelectListItem() { Text =  x.Name + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Client's Name">
+								</select>
+							}
+						}
+						else
+						{
+							@if (User.IsInRole("SuperAdmin"))
+							{
+								<select asp-for="ClientId" asp-items=" (await _mrepository.GetAllClient(0)).OrderBy(x=> x.Id).Select(x=> new SelectListItem() { Text = x.Name + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Client's Name">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+							{
+								<select asp-for="ClientId" asp-items=" (await _mrepository.GetAllClient((int)((await userManager.GetUserAsync(User)).CompanyDetailId))).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text =  x.Name + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Client's Name">
+									<option value="0">ALL</option>
+								</select>
+							}
+							else if (User.IsInRole("User"))
+							{
+								<select asp-for="ClientId" asp-items=" (await _mrepository.GetAllClient((int)((await userManager.GetUserAsync(User)).CompanyDetailId),(int)((await userManager.GetUserAsync(User)).ClientId))).OrderBy(x => x.Name).Select(x => new SelectListItem() { Text =  x.Name + ' '  + x.Address1 , Value = x.Id.ToString() })" class="form-control  selectedItems" title="Client's Name">
+								</select>
+							}
+						}
+					</div>
+					@if ((await authorizationService.AuthorizeAsync(User, "DownloadPrintHeaderPolicy")).Succeeded)
+					{
+						<div class="checkbox col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 text-right">
+							<label>
+								<input asp-for="HeaderPrint" />
+								@Html.DisplayNameFor(model => model.HeaderPrint)
+							</label>
+						</div>
+						@*<label asp-for="HeaderPrint" class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1 text-right"></label>
+						<div class="col-12 col-sm-12 col-md-1 col-lg-1 col-xl-1">
+							<input asp-for="HeaderPrint" class="form-control  form-control-sm text-left " title="Header Print" />
+						</div>*@
+					}
+				</div>
+			</div>		
+		</form>
+		<div class="stateScroll" id="DoctorTable1" style="margin-top:-15px;">
+			<table class="table  table-striped table-bordered table-hover table-responsive-sm Vouch">
+				<thead class="bluevioletWhiteListHeader small">
+					<tr>
+						<th hidden>
+							Id
+						</th>
+						<th>##</th>
+						<th>##</th>
+						<th>
+							Date
+						</th>
+						<th >
+							Ref.No.
+						</th>
+						<th class="wdp-11 text-center">
+							Action
+						</th>
+						<th>
+							User
+						</th>
+						<th>
+							Name
+						</th>
+						<th>
+							Doctor's Name
+						</th>
+						<th>
+							Investigation
+						</th>
+						<th class="wdp-2">
+							App
+						</th>
+						<th class="wdp-2">
+							Issue
+						</th>
+						<th class="wdp-2">
+							Hold
+						</th>
+						<th class="wdp-2">
+							Rcpt
+						</th>
+						<th class="wdp-3">
+							Dispatch
+						</th>							
+					</tr>
+				</thead>
+				<tbody class="tbodyPatientRecord">
+					@if (detailViewModelsx.Count() > 0)
+					{
+						@foreach (var item in detailViewModelsx)
+						{
+							totalamt = totalamt + Convert.ToDecimal(item.TotalAmt);
+							discamt = discamt + Convert.ToDecimal(item.DiscAmt);
+							paidamt = paidamt + Convert.ToDecimal(item.PaidAmt);
+							balamt = balamt + Convert.ToDecimal(item.BalAmt);
+							//paidclass = item.ReportCancel == "True" ? "reportCancelColor" : item.BalAmt == 0 ? "collectionColor" : item.BalAmt > 0 && item.PaidAmt > 0 ? "partialpaidColor" : "fullyunpaidColor";
+							paidclass = item.DispatchColorHold == "True" ? "resultDispatchColor" : (item.ReportRecipt == "True" ? "resultReciptColor" : (item.ReportHold == "True" ? "resultHoldColor" : (item.ReportIssue == "True" ? "resultIssueColor" : (item.ReportApproved == "True" ? "resultApprovedColor" :(item.ResultNotDone != "True" ? "resultNotDoneColor" : (item.ResultDone == "True" || item.ReportDate != null ? "resultDoneColor" : "fullyunpaidColor"))))));
+
+							<tr class=" @paidclass">
+								<td hidden>
+									@item.Id
+									@item.CompId
+								</td>
+								<td>
+									@if (item.ReportDate != null)
+									{<img src="~/LoaderIcon/apply.ico" class="imgList" />}
+									else
+									{
+										<img src="~/LoaderIcon/Pending.gif" class="imgList" />
+									}
+								</td>
+								<td class="text-center">
+									@if (await _mrepository.AuditFileForValid(item.Id))
+									{
+										<a href="#" onclick="AddEditExpenses(@item.Id)" style="width:auto" title="Edit User Details"><span><i class="far fa-user fa-1x icon-color-blue"></i></span></a>
+									}
+								</td>
+								<td>
+									@item.SDate
+								</td>
+								<td>
+									@item.RefNo
+								</td>
+								<td class="text-center">
+									@if (await _mrepository.UpdatePatientInvestigationDoctype(item.Id, "Document"))
+									{
+										<i class="fa fa-pager mr-2 fa-1x icon-color-red" title="Report not Document Type">Doc</i>
+										@if ((await authorizationService.AuthorizeAsync(User, "PatientResultPolicy")).Succeeded)
+										{
+											<a asp-action="CreatePatientResultDocFile" asp-controller="Master" asp-route-Ptid=@item.Id asp-route-compid="@item.CompId" class="mr-2 text-primary text-primary" title="Document Type Report">Select</a>
+										}
+
+									}
+									else
+									{
+										<i class="fa fa-pager mr-2 fa-1x icon-color-red" title="Report not Document Type">Not.</i>
+										@if ((await authorizationService.AuthorizeAsync(User, "PatientResultPolicy")).Succeeded)
+										{
+											<a asp-action="CreatePatientResultFile" asp-controller="Master" asp-route-Ptid=@item.Id asp-route-compid="@item.CompId" class="mr-2 text-primary" title="Reading Type Report">Select</a>
+										}
+									}
+									@if (item.ReportApproved == "True" && item.ResultDone == "True" && item.ReportDate != null)
+									{
+										@if ((await authorizationService.AuthorizeAsync(User, "DownloadPrintHeaderPolicy")).Succeeded)
+										{
+											if (await _mrepository.UpdatePatientInvestigationDoctype(item.Id, "Document"))
+											{
+												<a asp-action="PatientReportPrintDoc" asp-controller="Reporting" asp-route-id="@item.Id" asp-route-headprint="@(Model.HeaderPrint)" target="_blank" title="Report Print"><span><i class="fa fa-print mr-2 fa-1x icon-color-blue"></i></span></a>
+											}
+											else
+											{
+												<a asp-action="PatientReportPrint" asp-controller="Reporting" asp-route-id="@item.Id" asp-route-headprint="@(Model.HeaderPrint)" target="_blank" title="Report Print"><span><i class="fa fa-print mr-2 fa-1x icon-color-blue"></i></span></a>
+											}
+										}
+									}
+									else
+									{
+										<i class="fa fa-pager mr-2 fa-1x icon-color-red" title="Report not updated.."></i>
+									}
+								</td>
+								<td>
+									@userManager.Users.Where(x => x.Id == item.UserCode).Select(x => x.UserName.Substring(0, 8).ToUpper()).FirstOrDefault()
+								</td>
+								<td>
+									@item.TitleName  @item.Name @((int)item.Age) @item.AgeType @item.Sex
+								</td>
+								<td>
+									@item.DrName
+								</td>
+								<td>
+									@item.TestDetailRecord
+								</td>
+								<td class="wdp-2">
+									<div class="input-group">
+										@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+										{
+											<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_Status_@item.Id" checked="@(item.ReportApproved == "True" ? true : false)" onclick="checkValues(@item.Id);" />
+										}
+										else
+										{
+											if ((await authorizationService.AuthorizeAsync(User, "PatientApprovedPolicy")).Succeeded)
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_Status_@item.Id" checked="@(item.ReportApproved == "True" ? true : false)" onclick="checkValues(@item.Id);" />
+											}
+											else
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_Status_@item.Id" checked="@(item.ReportApproved == "True" ? true : false)" onclick="checkValues(@item.Id);" disabled />
+											}
+										}
+										</div>
+								</td>
+								<td class="wdp-2">
+									<div class="input-group">
+										@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+										{
+											<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusI_@item.Id" checked="@(item.ReportIssue == "True" ? true : false)" onclick="checkValuesIssue(@item.Id);" />
+										}
+										else
+										{
+											if ((await authorizationService.AuthorizeAsync(User, "PatientApprovedPolicy")).Succeeded)
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusI_@item.Id" checked="@(item.ReportIssue == "True" ? true : false)" onclick="checkValuesIssue(@item.Id);" />
+											}
+											else
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusI_@item.Id" checked="@(item.ReportIssue == "True" ? true : false)" onclick="checkValuesIssue(@item.Id);" disabled />
+											}
+										}
+									</div>
+								</td>
+								<td class="wdp-2">
+									<div class="input-group">
+										@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+										{
+											<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusH_@item.Id" checked="@(item.ReportHold == "True" ? true :false)" onclick="checkValuesHold(@item.Id);" />
+										}
+										else
+										{
+											if ((await authorizationService.AuthorizeAsync(User, "PatientApprovedPolicy")).Succeeded)
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusH_@item.Id" checked="@(item.ReportHold == "True" ? true : false)" onclick="checkValuesHold(@item.Id);" />
+											}
+											else
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusH_@item.Id" checked="@(item.ReportHold == "True" ? true :false)" onclick="checkValuesHold(@item.Id);" disabled />
+											}
+										}
+									</div>
+								</td>
+								<td class="wdp-2">
+									<div class="input-group">
+										@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+										{
+											<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusR_@item.Id" checked="@(item.ReportRecipt == "True" ? true : false)" onclick="checkValuesRecipt(@item.Id);" />
+										}
+										else
+										{
+											if ((await authorizationService.AuthorizeAsync(User, "PatientApprovedPolicy")).Succeeded)
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusR_@item.Id" checked="@(item.ReportRecipt == "True" ? true : false)" onclick="checkValuesRecipt(@item.Id);" />
+											}
+											else
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusR_@item.Id" checked="@(item.ReportRecipt == "True" ? true : false)" onclick="checkValuesRecipt(@item.Id);" disabled />
+											}
+										}
+										</div>
+								</td>
+								<td class="wdp-3">
+									<div class="input-group">
+										@if (User.IsInRole("SuperAdmin") || User.IsInRole("Admin"))
+										{
+											<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusD_@item.Id" checked="@(item.ReportDispatch == "True" ? true :false)" onclick="checkValuesDispatch(@item.Id);" />
+										}
+										else
+										{
+											if ((await authorizationService.AuthorizeAsync(User, "DownloadPrintPolicy")).Succeeded)
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusD_@item.Id" checked="@(item.ReportDispatch == "True" ? true :false)" onclick="checkValuesDispatch(@item.Id);" />
+											}
+											else
+											{
+												<input type="checkbox" class="form-control  wdp-5" style="height:15px;" id="Item_Status_@item.Id" name="Item_StatusD_@item.Id" checked="@(item.ReportDispatch == "True" ? true :false)" onclick="checkValuesDispatch(@item.Id);" disabled />
+											}
+										}
+									</div>
+								</td>								
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="15">
+								@if (Model.SearchRecordFinder == "Yes")
+								{
+									<h3 class="text-danger text-center">No Record found......</h3>
+								}
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+		<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 bg-white">
+			<div class="form-group row text-right">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<h5 class="text-danger">Total Patient :- @detailViewModelsx.Count()</h5>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section scripts{
+	<environment include="Development">
+		<script src="~/js/ResultSearchFind.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/ResultSearchFind.min.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#DoctorTable1').height(screen.height - 350);
+				//$('#TestReportTable1').height(screen.height - 520);	
+	</script>
+
+}

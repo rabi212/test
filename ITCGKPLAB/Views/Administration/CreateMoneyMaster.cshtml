@@ -1,0 +1,209 @@
+﻿@model MoneyMasterViewModel
+@inject ISettingRepository _repository;
+@{
+	ViewData["Title"] = "Setting Money Master";
+	List<MoneyMasterViewModel> detailViewModels = await _repository.GetALLMoneyMaster(0);
+}
+
+<div class="CustomBorderRelative">
+	<div class="CustomBorder1">
+		<h3 class="text-center text-white bg-info">Money Transfer Configuration URL</h3>
+		<form asp-action="CreateMoneyMaster" asp-controller="Administration" method="post">
+			<div class="row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12text-center"><div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollCompany" style="border-bottom:3px solid blue;"></div></div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row" hidden>
+						<label asp-for="Id" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+							<input asp-for="Id" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="MerchantId" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm"></label>
+						<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+							<select asp-for="CompId" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x=> x.TransCode).Select(x=> new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems">
+							</select>
+						</div>
+						<div class="col-12 col-sm-12 col-md-7 col-lg-7 col-xl-7">
+							<input asp-for="MerchantId" class="form-control form-control-sm" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="APIKey" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+							<input asp-for="APIKey" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="APISalt" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+							<input asp-for="APISalt" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="AuthKey" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+							<input asp-for="AuthKey" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="PostURL" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+							<input asp-for="PostURL" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="SurURL" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+							<input asp-for="SurURL" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="FurURL" class="col-12 col-sm-12 col-md-2 col-lg-2 col-xl-2 col-form-label col-form-label-sm CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-10 col-lg-10 col-xl-10">
+							<input asp-for="FurURL" class="form-control form-control-sm CustomText" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					@if (ViewBag.isSuccess)
+					{
+						<div class="alert alert-success alert-dismissible fade show" role="alert">
+							<strong>@ViewBag.message </strong>
+							<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+								<span aria-hidden="true">&times;</span>
+							</button>
+						</div>
+					}
+				</div>
+
+				<div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="Save" class="btn btn-sm btn-success" />
+							<a asp-action="CreateMoneyMaster" asp-controller="Administration" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-sm btn-warning" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-sm btn-outline-info">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 anyLine">
+			<div class="form-group row">
+				<div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+					<select id="CompId1" asp-items=" (await _repository.GetAllCompany(0)).OrderBy(x => x.TransCode).Select(x => new SelectListItem() { Text = x.TransCode, Value = x.Id.ToString() })" class="form-control form-control-sm selectedItems" onchange="GetMoneyFileRecord()">
+					</select>
+				</div>
+			</div>
+		</div>
+		<div class="stateScroll" id="LedgerTable1">
+			<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm PurchaseVouch">
+				<thead class="RedDarkWhiteListHeader">
+					<tr>
+						<th class="wdp-80" hidden>
+							Id
+						</th>
+						<th>
+							API Key
+						</th>
+						<th>
+							API Sault
+						</th>
+						<th>
+							Authentic Key
+						</th>
+						<th>
+							Post URL
+						</th>
+						<th class="actionListButtonWidthAgent">
+							Action
+						</th>
+					</tr>
+				</thead>
+				<tbody class="tbodyAddress">
+					@if (detailViewModels.Count() > 0)
+					{
+						@foreach (var item in detailViewModels)
+						{
+							<tr class="small">
+								<td hidden>
+									@item.Id
+								</td>
+								<td>
+									@item.APIKey
+								</td>
+								<td>
+									@item.APISalt
+								</td>
+								<td>
+									@item.AuthKey
+								</td>
+								<td>
+									@item.PostURL
+								</td>
+								<td class="actionListButtonWidthAgent">
+									<a asp-action="CreateMoneyMaster" asp-controller="Administration" asp-route-id=@item.Id><span><i class="far fa-edit mr-3 fa-2x icon-color-green"></i></span></a>
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="5">
+								<h3 class="text-danger text-center">No Record found......</h3>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<script>
+	$('#LedgerTable1').height(screen.height - 540);
+	function GetMoneyFileRecord() {
+		var empobj = {
+			CompId1: $('#CompId1').val()
+		}
+		$.ajax({
+			url: "/Administration/GetSearchAMoneyFile/",
+			method: "GET",
+			dataType: "json",
+			data: empobj,
+			contentType: "application/json",
+			success: function (result) {
+				var html = '';
+				if (result.length > 0) {
+					$.each(result, function (key, item) {
+						html += '<tr class="small">';
+						html += '<td hidden>' + item.id + '</td>';
+						html += '<td>' + item.apiKey + '</td>';
+						html += '<td>' + item.apiSalt + '</td>';
+						html += '<td>' + item.authKey + '</td>';
+						html += '<td>' + item.postURL + '</td>';
+						html += '<td class="actionListButtonWidthAgent">' +
+							'<a href="Money-Master-File?id=' + item.id + '"' + '<span><i class="far fa-edit mr-3 fa-2x icon-color-green"></i></span></a>' +
+							'</td >';
+						html += '</tr>';
+					});
+				}
+				else {
+					html += '<tr>';
+					html += '<td colspan="6"> ' + '<h3 class="text-danger text-center">No Record found......</h3>' + '</td>';
+					html += '</tr>';
+				}
+				$('.tbodyAddress').html(html);
+				// '<a href="AddressBook-Delete-File?id=' + item.ledgerMasterId + '"' +  '<span><i class="fas fa-times fa-2x icon-color-red"></i></span></a>' +
+			},
+			error: function (errormessage) {
+				console.error(errormessage.responseText);
+			}
+		});
+		return false;
+	}
+	</script>
+}

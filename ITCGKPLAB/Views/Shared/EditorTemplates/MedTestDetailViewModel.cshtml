@@ -1,0 +1,36 @@
+﻿@model MedTestDetailViewModel
+<tr class="small">
+	<td>
+		<input asp-for="TempSrNo" class="form-control form-control-sm" readonly />
+		<input asp-for="TestLineA" class="form-control form-control-sm" hidden />
+		<input asp-for="TestLineB" class="form-control form-control-sm" hidden />
+	</td>
+	<td>
+		<textarea asp-for="TestDetailsA" class="form-control form-control-sm small CustomTextTest" rows="1" style="background-color:#d1ea7c;color:#2c2afa;">
+		</textarea>
+	</td>
+	<td>
+		<input asp-for="PatResultA" class="form-control form-control-sm small text-right ModeResultRecord CustomTextTest" onfocus=" this.setSelectionRange(0, this.value.length);" style="background-color:#def6f4;color:#2c2afa;" />
+
+	</td>
+	<td>
+		<b>
+			<textarea asp-for="RangeDetailsA" class="form-control form-control-sm small CustomTextTest" rows="1" style="background-color:#f8fae6;">
+			</textarea>
+		</b>
+	</td>
+
+	<td>
+		<textarea asp-for="TestDetailsB" class="form-control form-control-sm small CustomTextTest" rows="1" style="background-color:#d1ea7c;color:#2c2afa;">
+		</textarea>
+	</td>
+	<td>
+		<input asp-for="PatResultB" class="form-control form-control-sm small text-right ModeResultRecord CustomTextTest" onfocus=" this.setSelectionRange(0, this.value.length);" style="background-color:#def6f4;color:#2c2afa;" />
+	</td>
+	<td>
+		<b>
+			<textarea asp-for="RangeDetailsB" class="form-control form-control-sm small CustomTextTest" rows="1" style="background-color:#f8fae6;">
+			</textarea>
+		</b>
+	</td>
+</tr>

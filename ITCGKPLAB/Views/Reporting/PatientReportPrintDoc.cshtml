@@ -1,0 +1,114 @@
+﻿@model PatientViewModel
+@inject IMasterRepository _repository;
+@inject ISettingRepository _srepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@inject IConfiguration _configuration;
+@{
+	Layout = null;
+	//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel CompanyDetailViewModel = await _srepository.GetCompanyById(Model.CompId);
+	PageSetupViewModel pagedetails = await _repository.GetPageSetuppPrintComp(CompanyDetailViewModel.Id);
+	List<ReportGroupViewModel> reportHeading = await _repository.GetPatientReportGroup(Model.Id,"Document");
+	var reportgroup = reportHeading.GroupBy(x => x.Id);
+	var testgroupId = reportHeading.GroupBy(x => new { x.Id, x.TempTestId });
+	string domainname = _configuration.GetSection("Application:AppDomain").Value + "PatientReport-Print?id=";		
+	string pagetop = (pagedetails.TopR + 60) + "px;";
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="page" style="margin-top:@pagetop" >
+		<div class="subpage" >
+			@if (pagedetails.BarcodeTop)
+			{
+				<div style="text-align:center;">
+					<span><barcode content="@Model.VNo" height="25" width="200" /></span>
+				</div>
+			}
+			<table class="table-responsive-sm" style="border:2px solid black;@pagedetails.HeaderDetails">
+				<tbody class="bg-white cellLeft">
+					<tr class="noBorderBody">
+						<td class="wdp-12">Pt Ref. No.</td>
+						<td class="wdp-58"> :- <strong>@Model.RefNo</strong></td>
+						<td class="wdp-10">UID</td>
+						<td class="wdp-20"> :- @Model.VNo</td>
+					</tr>
+					<tr class="noBorderBody">
+						<td class="wdp-12">Reg.Date</td>
+						<td class="wdp-58">
+							:- @Model.RDate @Model.RTime
+							@if (Model.AdharNo != null)
+							{
+								<span><b>Adhaar No. :- @Model.AdharNo </b></span>
+							}
+						</td>
+						<td class="wdp-10">Sample Date</td>
+						<td class="wdp-20"> :- @Model.SDate @Model.STime</td>
+					</tr>
+					<tr class="noBorderBody">
+						<td class="wdp-12">Patient's Name </td>
+						<td class="wdp-58">:- <strong> @Model.TitleName @Model.Name</strong> Age/Sex :- @((int)Model.Age) @Model.AgeType / @Model.Sex</td>
+						<td class="wdp-10">Report Date</td>
+						<td class="wdp-20">:- @Model.ReportDate</td>
+					</tr>
+					<tr class="noBorderBody">
+						<td class="wdp-12">Ref. By</td>
+						<td class="wdp-58">:- <strong>Dr.  @Model.DrName</strong></td>
+						<td class="wdp-10">Status</td>
+						<td class="wdp-20"> :- @(Model.ReportApproved == "True" ? "Approved" :"")</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div class="row">
+				@foreach (var item in reportgroup)
+				{
+					ReportGroupViewModel rptname = await _repository.GetReportGroupMasterById(item.Key);
+						<div class="col-12">
+							<p class="branchCenter-details text-center" style="@pagedetails.ReportHeaderDetails">@(rptname.Name)</p>
+						</div>
+					foreach (var testitem in testgroupId.Where(x => x.Key.Id == item.Key))
+					{
+						List<PatientInvestigationViewModel> patientReport = await _repository.GetPatientTestReport(Model.Id, rptname.Id, testitem.Key.TempTestId);
+						foreach (var prtdetails in patientReport.Where(x => x.TestMasterViewModels.ReportGroupViewModel.Id == @rptname.Id))
+						{
+							
+								<div class="col-12">
+									@Html.Raw(prtdetails.TestDetails)
+								</div>
+							
+						}
+					}
+				}
+				
+			</div>
+			<br />
+			<div class="row">
+				<div class="col-6">
+					<div class="invoice-to clearfix" style="margin-top:-35px;text-align:left;">
+						<qrcode content="@(domainname + Model.VNo)" alt="" />
+					</div>
+					@if (!pagedetails.BarcodeTop)
+					{
+						<div style="text-align:center;margin-top:-15px;">
+							<span><barcode content="@Model.VNo" height="25" width="200" /></span>
+						</div>
+					}
+				</div>
+
+				<div class="col-6 numeric-cell">
+					<h5 class="branchCenter-details" style="margin-top: -15px;">@Model.DoctorLabViewModel.PrintReport</h5>
+					<h4 class="branchCenter-details" style="margin-top: -10px;">@Model.DoctorLabViewModel.Name</h4>
+					<h4 class="branchCenter-details" style="margin-top: -10px;">@Model.DoctorLabViewModel.Eduction</h4>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</body>
+</html>

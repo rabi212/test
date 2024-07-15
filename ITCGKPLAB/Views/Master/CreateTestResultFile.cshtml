@@ -1,0 +1,106 @@
+﻿@model TestResultViewModel
+@inject IMasterRepository _repository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<SoftwareConfigMode> softwareoption
+
+@{
+	ViewData["Title"] = "Test Result File";
+	var softwareheader = softwareoption.Value;
+	List<TestMasterViewModel> StateViewModel = await _repository.GetAllTestMasterCompany(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1);
+	string submitValue = Model.Id > 0 ? "Update" : "Save";
+	int testsubid = Model.Id != 0 ? StateViewModel.Where(x => x.Id == Model.TestIdX).Select(x => x.Id).FirstOrDefault() : StateViewModel.Select(x => x.Id).FirstOrDefault();	
+}
+<div class="CustomBorderRelative">
+	<div class="CustomerGrade">
+		<h3 class="text-center text-white MixRedWhiteListHeader">Test Result File</h3>
+		<form asp-action="CreateTestResultFile" asp-controller="Master" method="post" id="testpreresultform" autocomplete="off">
+			<input asp-for="CurrentNo" class="form-control  CustomText" hidden />
+			<input asp-for="RowId" class="form-control  CustomText" hidden />
+			<input asp-for="Id" class="form-control" hidden />
+			<input asp-for="CompId" class="form-control" value="@((int)(await userManager.GetUserAsync(User)).CompanyDetailId)" hidden />
+			<div class="form-row">
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-center">
+					<div asp-validation-summary="All" class="text-danger row-cols-12 anyScrollOPD">
+						@if (ViewBag.isSuccess == true)
+						{
+							<div class="alert alert-success alert-dismissible fade show" role="alert">
+								<strong>@ViewBag.message </strong>
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<label asp-for="TestIdX" class="control-label col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							<select asp-for="TestIdX" asp-items=" (await _repository.GetAllTestMasterCompany(softwareheader.SoftwareMode == true ? (int)(await userManager.GetUserAsync(User)).CompanyDetailId : 1)).Select(x=> new SelectListItem() { Text = x.TestCode, Value = x.Id.ToString() })" class="form-control  selectedItems" onblur="GetSubTestRecord();">
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label asp-for="TestDetailName" class="col-form-label  col-12 col-sm-12 col-md-12 col-lg-3 col-xl-3 CustLabel"></label>
+						<div class="col-12 col-sm-12 col-md-12 col-lg-9 col-xl-9">
+							@*<input asp-for="TestSubId" class="form-control  CustomText" onblur=" GetSearchTestPresultDetails();" />*@
+							<select asp-for="TestDetailName" asp-items="(await _repository.GetTestMasterBySubId(testsubid)).Select(x=> new SelectListItem() { Text = x.TestDetails, Value = x.TestDetails.ToString() })" class="form-control  CustomText selectedItems" onblur="GetResultIdRecord();AddAllPatientValue();">
+							</select>							
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+							<div class="stateScroll boxcolorback" id="TestPreResultTable1">
+								<table class="table table-sm table-striped table-bordered table-hover table-responsive-sm OpenItemOrderVouch" id="TestPreResultrWidth">
+									<thead class="RedDarkWhiteListHeader small" id="tthead">
+										<tr>
+											<th class="text-center wdp-1">##</th>			@*Action*@
+											<th class="wdp-15">SrNo.</th>
+											<th class="wdp-75">Patient Values</th>
+										</tr>
+									</thead>
+									<tbody id="orderItemContinaer">
+										@Html.EditorFor(model => model.TestResultDetailViewModels)
+									</tbody>
+									<tfoot>
+										<tr>
+											@*<td><input type="button" id="btnAdd" value="New" class="btn btn-primary btn-sm" style="width:auto;" /></td>*@
+											<td class="text-center">
+												<a href="#" id="btnAdd" type="button" class="mt-1"><i class="fa fa-plus fa-1x icon-color-green"></i></a>
+											</td>
+										</tr>
+									</tfoot>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+					<div class="form-group row ">
+						<div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 text-right">
+							<input type="submit" value="@submitValue" class="btn btn-success  btn-sm" />
+							<a asp-action="CreateTestResultFile" asp-controller="Master" asp-route-id="0" asp-route-isSuccess="false" class="btn btn-warning  btn-sm" style="width:auto;">Add New</a>
+							<a asp-action="Index" asp-controller="Home" class="btn btn-outline-info  btn-sm">Cancel</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+
+	</div>
+</div>
+@section scripts {
+	@*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+	<environment include="Development">
+		<script src="~/js/MyTestPreResultFile.js" asp-append-version="true"></script>
+	</environment>
+	<environment exclude="Development">
+		<script src="~/js/MyTestPreResultFile.min.js" asp-append-version="true"></script>
+	</environment>
+	<script>
+		$('#TestPreResultTable1').height(screen.height - 400);
+			//$('#TestGrouptable1').height(screen.height - 380);
+	</script>
+}

@@ -1,0 +1,18 @@
+﻿@inject ISettingRepository _repository;
+@{
+	ViewData["Title"] = "About Center's";
+	List<CompanyDetailViewModel> detailViewModels = await _repository.GetAllCompany(0);
+}
+<h2 class="text-center">Our Clients</h2>
+<div class="py-5 bg-light">	
+	<div class="container-fluid">
+		<div class="row">
+			@foreach (var item in detailViewModels)
+			{
+				<div class="col-md-4">
+					<partial name="_displayAllCenter" model="@item" />
+				</div>
+			}
+		</div>
+	</div>
+</div>

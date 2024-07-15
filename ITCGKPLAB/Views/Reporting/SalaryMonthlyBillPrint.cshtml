@@ -1,0 +1,153 @@
+﻿@model IEnumerable<UpdatePayBillViewModel>
+@inject IPayBillRepository _repository;
+@inject ISettingRepository _srepository;
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> userManager;
+@{
+	Layout = null;//(int)((await userManager.GetUserAsync(User)).CompanyDetailId)
+	CompanyDetailViewModel MainBranch = await _srepository.GetCompanyById(((int)(await userManager.GetUserAsync(User)).CompanyDetailId));
+	int CountNo = 1;
+}
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Print</title>
+	<partial name="_HeaderReportFile" />
+</head>
+<body>
+	<div class="branchCenter-details">
+		<h3>@MainBranch.CompName</h3><br />
+		<p>@MainBranch.Address1  @MainBranch.Address2</p>
+		<p>Mob.No. @MainBranch.MobileNo   Ph.No. @MainBranch.PhoneNo  </p>
+		<h3 class="text-center">Monthly Salary Sheet</h3>
+	</div>
+
+		<table class="table-responsive-sm border fontsizebody">
+			<thead >
+				<tr class="text-center">
+					<td>
+						SrNo.
+					</td>
+					<td>
+						Id<br />
+						Code<br />
+						Name
+					</td>
+					<td>
+						Basic Pay<br />
+						Days<br />
+						New Basic Pay
+					</td>
+					<td>
+						TA<br />
+						DA<br />
+						HRA
+					</td>
+					<td>
+						CCA<br />
+						I.P.<br />
+						Bonus
+					</td>
+					<td>
+						E.P.F.<br />
+						Adv.Amt<br />
+						L.I.C.
+					</td>
+					<td>
+						Total Pay<br />
+						Deductation<br />
+						Net Pay
+					</td>
+					<td>
+						Signature
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+
+				@foreach (var item in Model)
+				{
+					<tr>
+						<td class="text-center wdp-5">
+							@CountNo
+						</td>
+						<td class="text-left wdp-25">
+							<b>@((int)item.EmpId)</b><br />
+							@item.AgentFileViewModel.Code <br />
+							@item.AgentFileViewModel.Name
+						</td>
+						<td class="text-right wdp-12">
+							@(item.BasicPay)<br />
+							@((int)item.AttendDays)<br />
+							@(item.NewBasicPay)
+						</td>
+						<td class="text-right wdp-12">
+							@(item.TA)<br />
+							@(item.DA)<br />
+							@(item.HRA)<br />
+						</td>
+						<td class="text-right wdp-12">
+							@(item.CCA)<br />
+							@(item.IPAmt)<br />
+							@(item.BonusAmt)
+						</td>
+						<td class="text-right wdp-12">
+							@item.EFP<br />
+							@item.AdvAmt<br />
+							@item.LIC<br />
+						</td>
+						<td class="text-right wdp-12">
+							<b>@item.TotalPay</b><br />
+							<b>@item.TotalDedPay</b><br />
+							<b>@item.NetPay</b>
+						</td>
+						<td class="text-right wdp-17"></td>
+					</tr>
+					CountNo += 1;
+				}
+				<tr>
+					<td class="text-center wdp-5">
+						<b>Total</b>
+					</td>
+					<td class="text-left wdp-25">						
+					</td>
+					<td class="text-right wdp-12">
+						<b>
+							@(Model.Sum(x => x.BasicPay))<br />
+							@(Model.Sum(x => x.NewBasicPay))
+						</b>
+					</td>
+					<td class="text-right wdp-12">
+						<b>
+							@(Model.Sum(x => x.TA))<br />
+							@(Model.Sum(x => x.DA))<br />
+							@(Model.Sum(x => x.HRA))<br />
+						</b>
+					</td>
+					<td class="text-right wdp-12">
+						<b>
+							@(Model.Sum(x => x.CCA))<br />
+							@(Model.Sum(x => x.IPAmt))<br />
+							@(Model.Sum(x => x.BonusAmt))
+						</b>
+					</td>
+					<td class="text-right wdp-12">
+						<b>
+							@(Model.Sum(x => x.EFP))<br />
+							@(Model.Sum(x => x.AdvAmt))<br />
+							@(Model.Sum(x => x.LIC))<br />
+						</b>
+					</td>
+					<td class="text-right wdp-12">
+						<b>@(Model.Sum(x => x.TotalPay))</b><br />
+						<b>@(Model.Sum(x => x.TotalDedPay))</b><br />
+						<b>@(Model.Sum(x => x.NetPay))</b>
+					</td>
+					<td class="text-right wdp-17"></td>
+				</tr>
+			</tbody>
+		</table>
+	
+</body>
+</html>
+
